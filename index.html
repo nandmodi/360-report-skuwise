@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QC Issue Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f7fa;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #0057a3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #0057a3;
+      color: white;
+    }
+    .tag {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .blocker { background-color: #ff4d4d; color: white; }
+    .high { background-color: #ffa500; color: white; }
+    .low { background-color: #00bfff; color: white; }
+    a.view-link {
+      color: #0057a3;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h1>QC Issue Report</h1>
+<table id="reportTable">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>SKU ID</th>
+      <th>Enterprise</th>
+      <th>QC User</th>
+      <th>Edited Images</th>
+      <th>TAT (min)</th>
+      <th>Severity</th>
+      <th>Issue</th>
+      <th>View Spin</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
+
+  fetch(CSV_URL)
+    .then(response => response.text())
+    .then(csvText => {
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          const tbody = document.querySelector("#reportTable tbody");
+          results.data.forEach(row => {
+            const tr = document.createElement("tr");
+
+            // Severity logic
+            let severityHtml = "";
+            const severityVal = row["Severity"]?.trim().toLowerCase();
+            if (severityVal === "blocker") severityHtml = '<span class="tag blocker">Blocker</span>';
+            else if (severityVal === "high") severityHtml = '<span class="tag high">High</span>';
+            else if (severityVal === "low") severityHtml = '<span class="tag low">Low</span>';
+
+            // Issue formatting
+            const issueList = row["Issue"]?.split(",").map(i => i.trim()).join(", ") || "";
+
+            // Spin link if available
+            const viewLink = row["View Spin"] ? `<a class="view-link" href="${row["View Spin"]}" target="_blank">View</a>` : "";
+
+            tr.innerHTML = `
+              <td>${row["date"] || ""}</td>
+              <td>${row["si.sku_id"] || ""}</td>
+              <td>${row["enterprise_name"] || ""}</td>
+              <td>${row["qc_user_name"] || ""}</td>
+              <td>${row["edited_images"] || ""}</td>
+              <td>${row["TAT_minutes"] || ""}</td>
+              <td>${severityHtml}</td>
+              <td>${issueList}</td>
+              <td>${viewLink}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      });
+    });
+</script>
+
+</body>
+</html>
