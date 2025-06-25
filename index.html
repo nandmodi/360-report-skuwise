@@ -73,7 +73,7 @@
             results.data.forEach(row => {
               const tr = document.createElement("tr");
               tr.innerHTML = `
-                <td>${row.Date || ''}</td>
+                <td>${row.date || ''}</td>
                 <td>${row["s.spin_id"] || ''}</td>
                 <td>${row["s.sku_id"] || ''}</td>
                 <td>${row.enterprise_name || ''}</td>
