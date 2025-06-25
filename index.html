@@ -7,9 +7,8 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 20px;
       background: #f9f9f9;
+      padding: 20px;
     }
     h1 {
       text-align: center;
@@ -19,11 +18,11 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
-      background: white;
+      background: #fff;
     }
     th, td {
-      border: 1px solid #ccc;
-      padding: 8px 12px;
+      border: 1px solid #ddd;
+      padding: 10px;
       text-align: left;
     }
     th {
@@ -31,25 +30,29 @@
       color: white;
     }
     tr:nth-child(even) {
-      background-color: #f2f2f2;
+      background-color: #f1f1f1;
     }
     a {
       color: #0066cc;
       text-decoration: none;
     }
+    a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
-  <h1>QC Report</h1>
+  <h1>QC Report Dashboard</h1>
   <table id="reportTable">
     <thead>
       <tr>
         <th>Date</th>
-        <th>Enterprise ID</th>
-        <th>SKU ID</th>
         <th>Spin ID</th>
-        <th>Edited Image</th>
-        <th>TAT in Min</th>
+        <th>SKU ID</th>
+        <th>Enterprise Name</th>
+        <th>User</th>
+        <th>Edited</th>
+        <th>TAT (Min)</th>
         <th>View Spin</th>
       </tr>
     </thead>
@@ -71,12 +74,13 @@
               const tr = document.createElement("tr");
               tr.innerHTML = `
                 <td>${row.Date || ''}</td>
-                <td>${row.enterprise_id || ''}</td>
-                <td>${row["si.sku_id"] || ''}</td>
-                <td>${row.spin_id || ''}</td>
+                <td>${row["s.spin_id"] || ''}</td>
+                <td>${row["s.sku_id"] || ''}</td>
+                <td>${row.enterprise_name || ''}</td>
+                <td>${row.qc_user_name || ''}</td>
                 <td>${row.edited_images || ''}</td>
                 <td>${row.TAT_minutes || ''}</td>
-                <td><a href="${row["View Spin"] || '#'}" target="_blank">View</a></td>
+                <td><a href="${row.view_spin || '#'}" target="_blank">View</a></td>
               `;
               tableBody.appendChild(tr);
             });
