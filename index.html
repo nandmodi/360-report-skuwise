@@ -9,7 +9,7 @@
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 20px;
-      background: #f4f4f4;
+      background: #f9f9f9;
     }
     h1 {
       text-align: center;
@@ -33,9 +33,9 @@
     tr:nth-child(even) {
       background-color: #f2f2f2;
     }
-    .highlight {
-      font-weight: bold;
-      color: red;
+    a {
+      color: #0066cc;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -45,13 +45,11 @@
     <thead>
       <tr>
         <th>Date</th>
+        <th>Enterprise ID</th>
         <th>SKU ID</th>
-        <th>Enterprise Name</th>
-        <th>QC User Name</th>
-        <th>Edited Images</th>
-        <th>TAT Minutes</th>
-        <th>Severity</th>
-        <th>Issue</th>
+        <th>Spin ID</th>
+        <th>Edited Image</th>
+        <th>TAT in Min</th>
         <th>View Spin</th>
       </tr>
     </thead>
@@ -69,31 +67,15 @@
           skipEmptyLines: true,
           complete: function(results) {
             const tableBody = document.querySelector("#reportTable tbody");
-
-            const allHeaders = results.meta.fields;
-            const issueKeys = allHeaders.filter(key =>
-              !['Date', 'si.sku_id', 'enterprise_name', 'qc_user_name', 'edited_images', 'TAT_minutes', 'View Spin', 'Blocker', 'High', 'Low'].includes(key)
-            );
-
             results.data.forEach(row => {
-              const severity = ['Blocker', 'High', 'Low']
-                .filter(level => parseInt(row[level]) > 0)
-                .join(', ');
-
-              const issues = issueKeys
-                .filter(key => row[key] && row[key].toString().trim() !== '0')
-                .join(', ');
-
               const tr = document.createElement("tr");
               tr.innerHTML = `
                 <td>${row.Date || ''}</td>
+                <td>${row.enterprise_id || ''}</td>
                 <td>${row["si.sku_id"] || ''}</td>
-                <td>${row.enterprise_name || ''}</td>
-                <td>${row.qc_user_name || ''}</td>
+                <td>${row.spin_id || ''}</td>
                 <td>${row.edited_images || ''}</td>
                 <td>${row.TAT_minutes || ''}</td>
-                <td class="${severity ? 'highlight' : ''}">${severity || '—'}</td>
-                <td>${issues || '—'}</td>
                 <td><a href="${row["View Spin"] || '#'}" target="_blank">View</a></td>
               `;
               tableBody.appendChild(tr);
