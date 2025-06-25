@@ -2,47 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>QC Report</title>
+  <title>QC Report Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.css" rel="stylesheet" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f9f9f9;
       padding: 20px;
+      background: #f9f9f9;
     }
     h1 {
       text-align: center;
       color: #003366;
     }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    .filters select, .filters input {
+      padding: 5px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
-      background: #fff;
+      background: white;
     }
     th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
+      border: 1px solid #ccc;
+      padding: 8px 12px;
     }
     th {
       background-color: #0057a3;
       color: white;
     }
     tr:nth-child(even) {
-      background-color: #f1f1f1;
-    }
-    a {
-      color: #0066cc;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
+      background-color: #f2f2f2;
     }
   </style>
 </head>
 <body>
   <h1>QC Report Dashboard</h1>
+
+  <div class="filters">
+    <input type="text" id="dateRange" placeholder="Select Date Range" readonly>
+    <select id="enterpriseFilter"><option value="">All Enterprises</option></select>
+    <select id="severityFilter"><option value="">All Severities</option><option>Blocker</option><option>High</option><option>Low</option></select>
+    <select id="issueFilter"><option value="">All Issues</option></select>
+    <select id="userFilter"><option value="">All Users</option></select>
+  </div>
+
   <table id="reportTable">
     <thead>
       <tr>
@@ -61,6 +73,70 @@
 
   <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
+    let rawData = [];
+
+    const picker = new Litepicker({
+      element: document.getElementById('dateRange'),
+      singleMode: false,
+      format: 'YYYY-MM-DD'
+    });
+
+    function populateFilters(data) {
+      const enterpriseSet = new Set();
+      const userSet = new Set();
+      const issueSet = new Set();
+
+      data.forEach(row => {
+        if (row.enterprise_name) enterpriseSet.add(row.enterprise_name);
+        if (row.qc_user_name) userSet.add(row.qc_user_name);
+        ['Blocker_Reason', 'High_Reason', 'Low_Reason'].forEach(col => {
+          if (row[col]) row[col].split(',').forEach(i => issueSet.add(i.trim()));
+        });
+      });
+
+      enterpriseSet.forEach(val => {
+        document.getElementById('enterpriseFilter').innerHTML += `<option>${val}</option>`;
+      });
+      userSet.forEach(val => {
+        document.getElementById('userFilter').innerHTML += `<option>${val}</option>`;
+      });
+      issueSet.forEach(val => {
+        if (val) document.getElementById('issueFilter').innerHTML += `<option>${val}</option>`;
+      });
+    }
+
+    function applyFilters() {
+      const [start, end] = document.getElementById('dateRange').value.split(' - ');
+      const enterprise = document.getElementById('enterpriseFilter').value;
+      const severity = document.getElementById('severityFilter').value;
+      const issue = document.getElementById('issueFilter').value;
+      const user = document.getElementById('userFilter').value;
+
+      const tbody = document.querySelector("#reportTable tbody");
+      tbody.innerHTML = '';
+
+      rawData.forEach(row => {
+        const rowDate = row.date;
+        if (start && end && (rowDate < start || rowDate > end)) return;
+        if (enterprise && row.enterprise_name !== enterprise) return;
+        if (user && row.qc_user_name !== user) return;
+        if (severity && parseInt(row[severity]) === 0) return;
+        if (issue && !(row.Blocker_Reason?.includes(issue) || row.High_Reason?.includes(issue) || row.Low_Reason?.includes(issue))) return;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.date}</td>
+          <td>${row["s.spin_id"]}</td>
+          <td>${row["s.sku_id"]}</td>
+          <td>${row.enterprise_name}</td>
+          <td>${row.qc_user_name}</td>
+          <td>${row.edited_images}</td>
+          <td>${row.TAT_minutes}</td>
+          <td><a href="${row.view_spin}" target="_blank">View</a></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
 
     fetch(sheetUrl)
       .then(response => response.text())
@@ -69,24 +145,16 @@
           header: true,
           skipEmptyLines: true,
           complete: function(results) {
-            const tableBody = document.querySelector("#reportTable tbody");
-            results.data.forEach(row => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${row.date || ''}</td>
-                <td>${row["s.spin_id"] || ''}</td>
-                <td>${row["s.sku_id"] || ''}</td>
-                <td>${row.enterprise_name || ''}</td>
-                <td>${row.qc_user_name || ''}</td>
-                <td>${row.edited_images || ''}</td>
-                <td>${row.TAT_minutes || ''}</td>
-                <td><a href="${row.view_spin || '#'}" target="_blank">View</a></td>
-              `;
-              tableBody.appendChild(tr);
-            });
+            rawData = results.data;
+            populateFilters(rawData);
+            applyFilters();
           }
         });
       });
+
+    document.querySelectorAll('.filters select, #dateRange').forEach(el => {
+      el.addEventListener('change', applyFilters);
+    });
   </script>
 </body>
 </html>
