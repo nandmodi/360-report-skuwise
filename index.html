@@ -6,6 +6,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -107,43 +109,29 @@
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
     let rawData = [];
 
-    function initMultiSelect(ids) {
-  ids.forEach(id => new TomSelect(`#${id}`, {
-    plugins: ['remove_button'],
-    closeAfterSelect: true,
-    persist: false,
-    maxItems: null,
-    hideSelected: true
-  }));
-}
+    new Litepicker({
+      element: document.getElementById('dateRange'),
+      singleMode: false,
+      format: 'YYYY-MM-DD',
+      setup: (picker) => {
+        picker.on('selected', () => applyFilters());
+      }
+    });
 
-// Initialize Litepicker
-new Litepicker({
-  element: document.getElementById('dateRange'),
-  singleMode: false,
-  format: 'YYYY-MM-DD',
-  setup: (picker) => {
-    picker.on('selected', () => applyFilters());
-  }
-});`, {
+    function initMultiSelect(ids) {
+      ids.forEach(id => new TomSelect(`#${id}`, {
         plugins: ['remove_button'],
         closeAfterSelect: true,
         persist: false,
         maxItems: null,
-        hideSelected: true,
-        render: {
-          option_create: function(data, escape) {
-            return `<div class='create'>Add <strong>${escape(data.input)}</strong>&hellip;</div>`;
-          }
-        }
+        hideSelected: true
       }));
     }
 
     function populateFilters(data) {
-      const sets = { dateFilter: new Set(), enterpriseFilter: new Set(), userFilter: new Set(), issueFilter: new Set() };
+      const sets = { enterpriseFilter: new Set(), userFilter: new Set(), issueFilter: new Set() };
 
       data.forEach(row => {
-        if (row.date) sets.dateFilter.add(row.date);
         if (row.enterprise_name) sets.enterpriseFilter.add(row.enterprise_name);
         if (row.qc_user_name) sets.userFilter.add(row.qc_user_name);
         ['Blocker_Reason', 'High_Reason', 'Low_Reason'].forEach(col => {
@@ -156,7 +144,7 @@ new Litepicker({
         select.innerHTML = [...values].sort().map(v => `<option value="${v}">${v}</option>`).join('');
       }
 
-      initMultiSelect(['dateFilter', 'enterpriseFilter', 'issueFilter', 'userFilter']);
+      initMultiSelect(['enterpriseFilter', 'issueFilter', 'userFilter']);
     }
 
     function getSelectedValues(id) {
