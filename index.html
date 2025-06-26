@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <title>QC Report Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/slim-select@2.6.0/dist/slimselect.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/slim-select@2.6.0/dist/slimselect.min.css" rel="stylesheet" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -108,7 +108,9 @@
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
     let rawData = [];
 
-    const multiChoice = ids => ids.forEach(id => new Choices(`#${id}`, { removeItemButton: true }));
+    function initSlimSelect(ids) {
+      ids.forEach(id => new SlimSelect({ select: `#${id}` }));
+    }
 
     function populateFilters(data) {
       const sets = { dateFilter: new Set(), enterpriseFilter: new Set(), userFilter: new Set(), issueFilter: new Set() };
@@ -127,7 +129,7 @@
         select.innerHTML = [...values].sort().map(v => `<option value="${v}">${v}</option>`).join('');
       }
 
-      multiChoice(['dateFilter', 'enterpriseFilter', 'issueFilter', 'userFilter']);
+      initSlimSelect(['dateFilter', 'enterpriseFilter', 'issueFilter', 'userFilter']);
     }
 
     function getSelectedValues(id) {
