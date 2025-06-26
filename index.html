@@ -119,6 +119,8 @@
   <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
     let rawData = [];
+    let summaryIndex = 0;
+    let detailIndex = 0;
 
     new Litepicker({
       element: document.getElementById('dateRange'),
@@ -163,165 +165,22 @@
       return Array.from(el.selectedOptions).map(o => o.value).filter(Boolean);
     }
 
-    let summaryIndex = 0;
-let detailIndex = 0;
+    function applyFilters() {
+      const dateRangeValue = document.getElementById('dateRange').value;
+      const [startDate, endDate] = dateRangeValue ? dateRangeValue.split(' - ') : [null, null];
+      const selectedEnterprises = getSelectedValues('enterpriseFilter');
+      const severity = document.getElementById('severityFilter').value;
+      const selectedIssues = getSelectedValues('issueFilter');
+      const selectedUsers = getSelectedValues('userFilter');
 
-function applyFilters() {
-  const dateRangeValue = document.getElementById('dateRange').value;
-  const [startDate, endDate] = dateRangeValue ? dateRangeValue.split(' - ') : [null, null];
-  const selectedEnterprises = getSelectedValues('enterpriseFilter');
-  const severity = document.getElementById('severityFilter').value;
-  const selectedIssues = getSelectedValues('issueFilter');
-  const selectedUsers = getSelectedValues('userFilter');
+      const tbody = document.querySelector("#reportTable tbody");
+      const summaryBody = document.querySelector("#summaryTable tbody");
+      tbody.innerHTML = '';
+      summaryBody.innerHTML = '';
+      summaryIndex = 0;
+      detailIndex = 0;
 
-  const tbody = document.querySelector("#reportTable tbody");
-  const summaryBody = document.querySelector("#summaryTable tbody");
-  tbody.innerHTML = '';
-  summaryBody.innerHTML = '';
-  summaryIndex = 0;
-  detailIndex = 0;
-
-  const filtered = rawData.filter(row => {
-    if (startDate && endDate && (row.date < startDate || row.date > endDate)) return false;
-    if (selectedEnterprises.length && !selectedEnterprises.includes(row.enterprise_name)) return false;
-    if (selectedUsers.length && !selectedUsers.includes(row.qc_user_name)) return false;
-    if (severity && parseInt(row[severity]) === 0) return false;
-    if (selectedIssues.length) {
-      const reasons = `${row.Blocker_Reason || ''},${row.High_Reason || ''},${row.Low_Reason || ''}`;
-      if (!selectedIssues.some(issue => reasons.includes(issue))) return false;
-    }
-    return true;
-  });
-
-  window.filteredData = filtered;
-  window.groupedData = {};
-
-  filtered.forEach(row => {
-    const date = row.date;
-    if (!window.groupedData[date]) window.groupedData[date] = { sku_ids: new Set(), enterprises: new Set(), edited: 0, tatSum: 0, count: 0 };
-    window.groupedData[date].sku_ids.add(row["s.sku_id"]);
-    window.groupedData[date].enterprises.add(row.enterprise_name);
-    window.groupedData[date].edited += parseInt(row.edited_images || 0);
-    window.groupedData[date].tatSum += parseFloat(row.TAT_minutes || 0);
-    window.groupedData[date].count++;
-  });
-
-  loadMoreSummary();
-  loadMoreDetails();
-}
-
-function loadMoreSummary(count = 10) {
-  const summaryBody = document.querySelector("#summaryTable tbody");
-  const entries = Object.entries(window.groupedData);
-  for (let i = summaryIndex; i < summaryIndex + count && i < entries.length; i++) {
-    const [date, stats] = entries[i];
-    const avgTat = stats.count > 0 ? (stats.tatSum / stats.count).toFixed(2) : 0;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${date}</td>
-      <td>${stats.sku_ids.size}</td>
-      <td>${stats.enterprises.size}</td>
-      <td>${stats.edited}</td>
-      <td>${avgTat}</td>
-    `;
-    summaryBody.appendChild(tr);
-  }
-  summaryIndex += count;
-}
-
-function loadMoreDetails(count = 10) {
-  const tbody = document.querySelector("#reportTable tbody");
-  const filtered = window.filteredData || [];
-  for (let i = detailIndex; i < detailIndex + count && i < filtered.length; i++) {
-    const row = filtered[i];
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${row.date}</td>
-      <td>${row["s.spin_id"]}</td>
-      <td>${row["s.sku_id"]}</td>
-      <td>${row.enterprise_name}</td>
-      <td>${row.qc_user_name}</td>
-      <td>${row.edited_images}</td>
-      <td>${row.TAT_minutes}</td>
-      <td><a href="${row.view_spin}" target="_blank">View</a></td>
-    `;
-    tbody.appendChild(tr);
-  }
-  detailIndex += count;
-}
-
-const summaryWrapper = document.querySelector('#summaryTable').parentElement;
-summaryWrapper.addEventListener('scroll', () => {
-  if (summaryWrapper.scrollTop + summaryWrapper.clientHeight >= summaryWrapper.scrollHeight - 5) {
-    loadMoreSummary();
-  }
-});
-
-const detailWrapper = document.querySelector('#reportTable').parentElement;
-detailWrapper.addEventListener('scroll', () => {
-  if (detailWrapper.scrollTop + detailWrapper.clientHeight >= detailWrapper.scrollHeight - 5) {
-    loadMoreDetails();
-  }
-});
-
-const grouped = {};
-
-      filtered.forEach(row => {
-        const date = row.date;
-        if (!grouped[date]) grouped[date] = { sku_ids: new Set(), enterprises: new Set(), edited: 0, tatSum: 0, count: 0 };
-        grouped[date].sku_ids.add(row["s.sku_id"]);
-        grouped[date].enterprises.add(row.enterprise_name);
-        grouped[date].edited += parseInt(row.edited_images || 0);
-        grouped[date].tatSum += parseFloat(row.TAT_minutes || 0);
-        grouped[date].count++;
-      });
-
-      Object.entries(grouped).slice(0, 10).forEach(([date, stats]) => {
-        const avgTat = stats.count > 0 ? (stats.tatSum / stats.count).toFixed(2) : 0;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${date}</td>
-          <td>${stats.sku_ids.size}</td>
-          <td>${stats.enterprises.size}</td>
-          <td>${stats.edited}</td>
-          <td>${avgTat}</td>
-        `;
-        summaryBody.appendChild(tr);
-      });
-
-      filtered.slice(0, 10).forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row.date}</td>
-          <td>${row["s.spin_id"]}</td>
-          <td>${row["s.sku_id"]}</td>
-          <td>${row.enterprise_name}</td>
-          <td>${row.qc_user_name}</td>
-          <td>${row.edited_images}</td>
-          <td>${row.TAT_minutes}</td>
-          <td><a href="${row.view_spin}" target="_blank">View</a></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    fetch(sheetUrl)
-      .then(response => response.text())
-      .then(csv => {
-        Papa.parse(csv, {
-          header: true,
-          skipEmptyLines: true,
-          complete: function(results) {
-            rawData = results.data;
-            populateFilters(rawData);
-            applyFilters();
-          }
-        });
-      });
-
-    document.addEventListener('change', function (e) {
-      if (e.target.closest('.filters select')) applyFilters();
-    });
-  </script>
-</body>
-</html>
+      const filtered = rawData.filter(row => {
+        if (startDate && endDate && (row.date < startDate || row.date > endDate)) return false;
+        if (selectedEnterprises.length && !selectedEnterprises.includes(row.enterprise_name)) return false;
+        if (selectedUsers.length && !selectedUsers.includes(
