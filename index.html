@@ -26,6 +26,9 @@
     .filters select, .filters input {
       padding: 5px;
     }
+    select[multiple] {
+      height: 100px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -56,11 +59,11 @@
   <h1>QC Report Dashboard</h1>
 
   <div class="filters">
-    <input type="text" id="dateRange" placeholder="Select Date Range" readonly>
-    <select id="enterpriseFilter"><option value="">All Enterprises</option></select>
+    <select id="dateFilter"><option value="">All Dates</option></select>
+    <select id="enterpriseFilter" multiple><option value="">All Enterprises</option></select>
     <select id="severityFilter"><option value="">All Severities</option><option>Blocker</option><option>High</option><option>Low</option></select>
-    <select id="issueFilter"><option value="">All Issues</option></select>
-    <select id="userFilter"><option value="">All Users</option></select>
+    <select id="issueFilter" multiple><option value="">All Issues</option></select>
+    <select id="userFilter" multiple><option value="">All Users</option></select>
   </div>
 
   <h2>Date-wise Summary</h2>
@@ -102,25 +105,24 @@
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
     let rawData = [];
 
-    const picker = new Litepicker({
-      element: document.getElementById('dateRange'),
-      singleMode: false,
-      format: 'YYYY-MM-DD'
-    });
-
     function populateFilters(data) {
       const enterpriseSet = new Set();
       const userSet = new Set();
       const issueSet = new Set();
+      const dateSet = new Set();
 
       data.forEach(row => {
         if (row.enterprise_name) enterpriseSet.add(row.enterprise_name);
         if (row.qc_user_name) userSet.add(row.qc_user_name);
+        if (row.date) dateSet.add(row.date);
         ['Blocker_Reason', 'High_Reason', 'Low_Reason'].forEach(col => {
           if (row[col]) row[col].split(',').forEach(i => issueSet.add(i.trim()));
         });
       });
 
+      dateSet.forEach(val => {
+        document.getElementById('dateFilter').innerHTML += `<option>${val}</option>`;
+      });
       enterpriseSet.forEach(val => {
         document.getElementById('enterpriseFilter').innerHTML += `<option>${val}</option>`;
       });
@@ -132,12 +134,16 @@
       });
     }
 
+    function getSelectedValues(selectId) {
+      return Array.from(document.getElementById(selectId).selectedOptions).map(opt => opt.value).filter(v => v);
+    }
+
     function applyFilters() {
-      const [start, end] = document.getElementById('dateRange').value.split(' - ');
-      const enterprise = document.getElementById('enterpriseFilter').value;
+      const selectedDates = getSelectedValues('dateFilter');
+      const selectedEnterprises = getSelectedValues('enterpriseFilter');
       const severity = document.getElementById('severityFilter').value;
-      const issue = document.getElementById('issueFilter').value;
-      const user = document.getElementById('userFilter').value;
+      const selectedIssues = getSelectedValues('issueFilter');
+      const selectedUsers = getSelectedValues('userFilter');
 
       const tbody = document.querySelector("#reportTable tbody");
       const summaryBody = document.querySelector("#summaryTable tbody");
@@ -145,12 +151,14 @@
       summaryBody.innerHTML = '';
 
       const filtered = rawData.filter(row => {
-        const rowDate = row.date;
-        if (start && end && (rowDate < start || rowDate > end)) return false;
-        if (enterprise && row.enterprise_name !== enterprise) return false;
-        if (user && row.qc_user_name !== user) return false;
+        if (selectedDates.length && !selectedDates.includes(row.date)) return false;
+        if (selectedEnterprises.length && !selectedEnterprises.includes(row.enterprise_name)) return false;
+        if (selectedUsers.length && !selectedUsers.includes(row.qc_user_name)) return false;
         if (severity && parseInt(row[severity]) === 0) return false;
-        if (issue && !(row.Blocker_Reason?.includes(issue) || row.High_Reason?.includes(issue) || row.Low_Reason?.includes(issue))) return false;
+        if (selectedIssues.length) {
+          const reasons = `${row.Blocker_Reason || ''},${row.High_Reason || ''},${row.Low_Reason || ''}`;
+          if (!selectedIssues.some(issue => reasons.includes(issue))) return false;
+        }
         return true;
       });
 
@@ -209,7 +217,7 @@
         });
       });
 
-    document.querySelectorAll('.filters select, #dateRange').forEach(el => {
+    document.querySelectorAll('.filters select').forEach(el => {
       el.addEventListener('change', applyFilters);
     });
   </script>
