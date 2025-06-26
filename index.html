@@ -12,7 +12,7 @@
       padding: 20px;
       background: #f9f9f9;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
       color: #003366;
     }
@@ -30,7 +30,6 @@
       width: 100%;
       border-collapse: collapse;
       background: white;
-      margin-top: 20px;
     }
     th, td {
       border: 1px solid #ccc;
@@ -43,8 +42,10 @@
     tr:nth-child(even) {
       background-color: #f2f2f2;
     }
-    #summaryTable {
-      margin-top: 40px;
+    .table-wrapper {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -59,35 +60,40 @@
     <select id="userFilter"><option value="">All Users</option></select>
   </div>
 
-  <table id="reportTable">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Spin ID</th>
-        <th>SKU ID</th>
-        <th>Enterprise Name</th>
-        <th>User</th>
-        <th>Edited</th>
-        <th>TAT (Min)</th>
-        <th>View Spin</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
   <h2>Date-wise Summary</h2>
-  <table id="summaryTable">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>SKU Count</th>
-        <th>Unique Enterprises</th>
-        <th>Total Edited Images</th>
-        <th>Average TAT</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="table-wrapper">
+    <table id="summaryTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>SKU Count</th>
+          <th>Unique Enterprises</th>
+          <th>Total Edited Images</th>
+          <th>Average TAT</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <h2>Detailed Report</h2>
+  <div class="table-wrapper">
+    <table id="reportTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Spin ID</th>
+          <th>SKU ID</th>
+          <th>Enterprise Name</th>
+          <th>User</th>
+          <th>Edited</th>
+          <th>TAT (Min)</th>
+          <th>View Spin</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
@@ -155,7 +161,22 @@
         grouped[date].edited += parseInt(row.edited_images || 0);
         grouped[date].tatSum += parseFloat(row.TAT_minutes || 0);
         grouped[date].count++;
+      });
 
+      Object.entries(grouped).slice(0, 10).forEach(([date, stats]) => {
+        const avgTat = stats.count > 0 ? (stats.tatSum / stats.count).toFixed(2) : 0;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${date}</td>
+          <td>${stats.sku_ids.size}</td>
+          <td>${stats.enterprises.size}</td>
+          <td>${stats.edited}</td>
+          <td>${avgTat}</td>
+        `;
+        summaryBody.appendChild(tr);
+      });
+
+      filtered.slice(0, 10).forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${row.date}</td>
@@ -168,19 +189,6 @@
           <td><a href="${row.view_spin}" target="_blank">View</a></td>
         `;
         tbody.appendChild(tr);
-      });
-
-      Object.entries(grouped).forEach(([date, stats]) => {
-        const avgTat = stats.count > 0 ? (stats.tatSum / stats.count).toFixed(2) : 0;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${date}</td>
-          <td>${stats.sku_ids.size}</td>
-          <td>${stats.enterprises.size}</td>
-          <td>${stats.edited}</td>
-          <td>${avgTat}</td>
-        `;
-        summaryBody.appendChild(tr);
       });
     }
 
