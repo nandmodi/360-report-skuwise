@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <title>QC Report Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/slim-select@2.6.0/dist/slimselect.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/slim-select@2.6.0/dist/slimselect.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -24,8 +24,7 @@
       justify-content: center;
     }
     .filters select, .filters input {
-      padding: 5px;
-      min-width: 180px;
+      min-width: 220px;
     }
     table {
       width: 100%;
@@ -57,16 +56,16 @@
   <h1>QC Report Dashboard</h1>
 
   <div class="filters">
-    <select id="dateFilter" multiple></select>
-    <select id="enterpriseFilter" multiple></select>
+    <input type="text" id="dateRange" placeholder="Select Date Range..." readonly>
+    <select id="enterpriseFilter" multiple placeholder="Select Enterprise..."></select>
     <select id="severityFilter">
       <option value="">All Severities</option>
       <option>Blocker</option>
       <option>High</option>
       <option>Low</option>
     </select>
-    <select id="issueFilter" multiple></select>
-    <select id="userFilter" multiple></select>
+    <select id="issueFilter" multiple placeholder="Select Issue..."></select>
+    <select id="userFilter" multiple placeholder="Select User..."></select>
   </div>
 
   <h2>Date-wise Summary</h2>
@@ -108,8 +107,36 @@
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
     let rawData = [];
 
-    function initSlimSelect(ids) {
-      ids.forEach(id => new SlimSelect({ select: `#${id}` }));
+    function initMultiSelect(ids) {
+  ids.forEach(id => new TomSelect(`#${id}`, {
+    plugins: ['remove_button'],
+    closeAfterSelect: true,
+    persist: false,
+    maxItems: null,
+    hideSelected: true
+  }));
+}
+
+// Initialize Litepicker
+new Litepicker({
+  element: document.getElementById('dateRange'),
+  singleMode: false,
+  format: 'YYYY-MM-DD',
+  setup: (picker) => {
+    picker.on('selected', () => applyFilters());
+  }
+});`, {
+        plugins: ['remove_button'],
+        closeAfterSelect: true,
+        persist: false,
+        maxItems: null,
+        hideSelected: true,
+        render: {
+          option_create: function(data, escape) {
+            return `<div class='create'>Add <strong>${escape(data.input)}</strong>&hellip;</div>`;
+          }
+        }
+      }));
     }
 
     function populateFilters(data) {
@@ -129,7 +156,7 @@
         select.innerHTML = [...values].sort().map(v => `<option value="${v}">${v}</option>`).join('');
       }
 
-      initSlimSelect(['dateFilter', 'enterpriseFilter', 'issueFilter', 'userFilter']);
+      initMultiSelect(['dateFilter', 'enterpriseFilter', 'issueFilter', 'userFilter']);
     }
 
     function getSelectedValues(id) {
@@ -138,7 +165,8 @@
     }
 
     function applyFilters() {
-      const selectedDates = getSelectedValues('dateFilter');
+      const dateRangeValue = document.getElementById('dateRange').value;
+      const [startDate, endDate] = dateRangeValue ? dateRangeValue.split(' - ') : [null, null];
       const selectedEnterprises = getSelectedValues('enterpriseFilter');
       const severity = document.getElementById('severityFilter').value;
       const selectedIssues = getSelectedValues('issueFilter');
@@ -150,7 +178,7 @@
       summaryBody.innerHTML = '';
 
       const filtered = rawData.filter(row => {
-        if (selectedDates.length && !selectedDates.includes(row.date)) return false;
+        if (startDate && endDate && (row.date < startDate || row.date > endDate)) return false;
         if (selectedEnterprises.length && !selectedEnterprises.includes(row.enterprise_name)) return false;
         if (selectedUsers.length && !selectedUsers.includes(row.qc_user_name)) return false;
         if (severity && parseInt(row[severity]) === 0) return false;
