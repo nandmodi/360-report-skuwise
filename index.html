@@ -11,18 +11,27 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      padding: 20px;
+      padding: 0;
+      margin: 0;
       background: #f9f9f9;
+    }
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background: #f9f9f9;
+      z-index: 10;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     h1, h2 {
       text-align: center;
       color: #003366;
+      margin: 10px 0;
     }
     .filters {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 20px;
       justify-content: center;
     }
     .filters select, .filters input {
@@ -51,23 +60,25 @@
       max-height: 300px;
       overflow-y: auto;
       margin-top: 10px;
+      padding: 0 20px;
     }
   </style>
 </head>
 <body>
-  <h1>QC Report Dashboard</h1>
-
-  <div class="filters">
-    <input type="text" id="dateRange" placeholder="Select Date Range..." readonly>
-    <select id="enterpriseFilter" multiple placeholder="Select Enterprise..."></select>
-    <select id="severityFilter">
-      <option value="">All Severities</option>
-      <option>Blocker</option>
-      <option>High</option>
-      <option>Low</option>
-    </select>
-    <select id="issueFilter" multiple placeholder="Select Issue..."></select>
-    <select id="userFilter" multiple placeholder="Select User..."></select>
+  <div class="sticky-header">
+    <h1>QC Report Dashboard</h1>
+    <div class="filters">
+      <input type="text" id="dateRange" placeholder="Select Date Range..." readonly>
+      <select id="enterpriseFilter" multiple placeholder="Select Enterprise..."></select>
+      <select id="severityFilter">
+        <option value="">All Severities</option>
+        <option>Blocker</option>
+        <option>High</option>
+        <option>Low</option>
+      </select>
+      <select id="issueFilter" multiple placeholder="Select Issue..."></select>
+      <select id="userFilter" multiple placeholder="Select User..."></select>
+    </div>
   </div>
 
   <h2>Date-wise Summary</h2>
