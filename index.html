@@ -30,6 +30,7 @@
       width: 100%;
       border-collapse: collapse;
       background: white;
+      margin-top: 20px;
     }
     th, td {
       border: 1px solid #ccc;
@@ -41,6 +42,9 @@
     }
     tr:nth-child(even) {
       background-color: #f2f2f2;
+    }
+    #summaryTable {
+      margin-top: 40px;
     }
   </style>
 </head>
@@ -66,6 +70,20 @@
         <th>Edited</th>
         <th>TAT (Min)</th>
         <th>View Spin</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Date-wise Summary</h2>
+  <table id="summaryTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>SKU Count</th>
+        <th>Unique Enterprises</th>
+        <th>Total Edited Images</th>
+        <th>Average TAT</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -113,15 +131,30 @@
       const user = document.getElementById('userFilter').value;
 
       const tbody = document.querySelector("#reportTable tbody");
+      const summaryBody = document.querySelector("#summaryTable tbody");
       tbody.innerHTML = '';
+      summaryBody.innerHTML = '';
 
-      rawData.forEach(row => {
+      const filtered = rawData.filter(row => {
         const rowDate = row.date;
-        if (start && end && (rowDate < start || rowDate > end)) return;
-        if (enterprise && row.enterprise_name !== enterprise) return;
-        if (user && row.qc_user_name !== user) return;
-        if (severity && parseInt(row[severity]) === 0) return;
-        if (issue && !(row.Blocker_Reason?.includes(issue) || row.High_Reason?.includes(issue) || row.Low_Reason?.includes(issue))) return;
+        if (start && end && (rowDate < start || rowDate > end)) return false;
+        if (enterprise && row.enterprise_name !== enterprise) return false;
+        if (user && row.qc_user_name !== user) return false;
+        if (severity && parseInt(row[severity]) === 0) return false;
+        if (issue && !(row.Blocker_Reason?.includes(issue) || row.High_Reason?.includes(issue) || row.Low_Reason?.includes(issue))) return false;
+        return true;
+      });
+
+      const grouped = {};
+
+      filtered.forEach(row => {
+        const date = row.date;
+        if (!grouped[date]) grouped[date] = { sku_ids: new Set(), enterprises: new Set(), edited: 0, tatSum: 0, count: 0 };
+        grouped[date].sku_ids.add(row["s.sku_id"]);
+        grouped[date].enterprises.add(row.enterprise_name);
+        grouped[date].edited += parseInt(row.edited_images || 0);
+        grouped[date].tatSum += parseFloat(row.TAT_minutes || 0);
+        grouped[date].count++;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -135,6 +168,19 @@
           <td><a href="${row.view_spin}" target="_blank">View</a></td>
         `;
         tbody.appendChild(tr);
+      });
+
+      Object.entries(grouped).forEach(([date, stats]) => {
+        const avgTat = stats.count > 0 ? (stats.tatSum / stats.count).toFixed(2) : 0;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${date}</td>
+          <td>${stats.sku_ids.size}</td>
+          <td>${stats.enterprises.size}</td>
+          <td>${stats.edited}</td>
+          <td>${avgTat}</td>
+        `;
+        summaryBody.appendChild(tr);
       });
     }
 
