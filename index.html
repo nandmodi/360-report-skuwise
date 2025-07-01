@@ -209,14 +209,12 @@ function initMultiSelect(ids) {
     new TomSelect(selectEl, {
       searchField: 'text',
       onChange: function(values) {
-        const wrapper = this.control;
-        const summary = Array.isArray(values) ? `${values.length} Selected` : (values ? '1 Selected' : '');
-        wrapper.querySelectorAll('.item').forEach(e => e.remove());
+        if (values.includes('__summary__')) return;
+        const summary = values.length > 0 ? `${values.length} Selected` : '';
+        this.clear(true);
         if (summary) {
-          const display = document.createElement('div');
-          display.className = 'item';
-          display.textContent = summary;
-          wrapper.insertBefore(display, this.control_input);
+          this.addOption({ value: '__summary__', text: summary });
+          this.addItem('__summary__');
         }
       },
       plugins: ['remove_button'],
@@ -229,6 +227,9 @@ function initMultiSelect(ids) {
           return `<div><label><input type='checkbox' /> ${escape(data.text)}</label></div>`;
         },
         item: function(data, escape) {
+          if (data.value === '__summary__') {
+            return `<div class="item">${escape(data.text)}</div>`;
+          }
           return '';
         }
       },
