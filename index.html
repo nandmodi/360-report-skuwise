@@ -205,7 +205,7 @@ function initMultiSelect(ids) {
     const selectEl = document.getElementById(id);
     if (!selectEl) return;
 
-    new TomSelect(selectEl, {
+    const select = new TomSelect(selectEl, {
       plugins: ['remove_button'],
       closeAfterSelect: false,
       persist: false,
@@ -230,9 +230,8 @@ function initMultiSelect(ids) {
             e.stopPropagation();
             const selectAll = document.getElementById(selectAllId);
             const control = dropdown.tomselect;
-            const allOptions = Object.values(control.options).map(o => o.value);
             if (selectAll.checked) {
-              control.setValue(allOptions);
+              control.setValue(control.options.map(opt => opt.value));
             } else {
               control.clear();
             }
@@ -241,36 +240,6 @@ function initMultiSelect(ids) {
       }
     });
   });
-}
-      },
-      onChange: function(values) {
-        const wrapper = this.control;
-        const count = Array.isArray(values) ? values.length : (values ? 1 : 0);
-        wrapper.innerHTML = count > 0 ? `<div>${count} Selected</div>` : '';
-      },
-      onDropdownOpen: function(dropdown) {
-        const selectAllId = `selectAll-${id}`;
-        if (!document.getElementById(selectAllId)) {
-          const selectAllDiv = document.createElement('div');
-          selectAllDiv.innerHTML = `<label style='display:block;padding:4px 10px;'><input type='checkbox' id='${selectAllId}' /> Select all</label>`;
-          dropdown.insertBefore(selectAllDiv, dropdown.firstChild);
-
-          selectAllDiv.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const selectAll = document.getElementById(selectAllId);
-            const control = dropdown.tomselect;
-            const allOptions = Object.values(control.options).map(o => o.value);
-            if (selectAll.checked) {
-              control.setValue(allOptions);
-            } else {
-              control.clear();
-            }
-          });
-        }
-      }
-    });
-  });
-}
 }
 
 function populateFilters(data) {
