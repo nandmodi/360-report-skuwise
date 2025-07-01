@@ -202,7 +202,10 @@ new Litepicker({
 
 function initMultiSelect(ids) {
   ids.forEach(id => {
-    new TomSelect(`#${id}`, {
+    const selectEl = document.getElementById(id);
+    if (!selectEl) return;
+
+    const select = new TomSelect(selectEl, {
       plugins: ['remove_button'],
       closeAfterSelect: false,
       persist: false,
@@ -237,41 +240,6 @@ function initMultiSelect(ids) {
       }
     });
   });
-}`, {
-      plugins: ['remove_button'],
-      closeAfterSelect: true,
-      persist: false,
-      maxItems: null,
-      hideSelected: true,
-      onInitialize: function() {
-        const control = this;
-        const selectAllOption = document.createElement('div');
-        selectAllOption.className = 'ts-dropdown-content';
-        selectAllOption.style.padding = '5px 10px';
-        selectAllOption.innerHTML = '<label><input type="checkbox" id="selectAll-' + id + '"/> Select all</label>';
-
-        const dropdown = control.dropdown;
-        dropdown.insertBefore(selectAllOption, dropdown.firstChild);
-
-        selectAllOption.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const selectAll = document.getElementById('selectAll-' + id);
-          if (selectAll.checked) {
-            control.setValue(control.options.map(o => o.value));
-          } else {
-            control.clear();
-          }
-        });
-      }
-    });
-  });
-}`, {
-    plugins: ['remove_button'],
-    closeAfterSelect: true,
-    persist: false,
-    maxItems: null,
-    hideSelected: true
-  }));
 }
 
 function populateFilters(data) {
