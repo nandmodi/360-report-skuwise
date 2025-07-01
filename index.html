@@ -275,7 +275,9 @@ function populateFilters(data) {
 
 function getSelectedValues(id) {
   const el = document.getElementById(id);
-  return Array.from(el.selectedOptions).map(o => o.value).filter(Boolean);
+  return Array.from(el.selectedOptions)
+    .map(o => o.value)
+    .filter(v => v && v !== '__summary__');
 }
 
 function applyFilters() {
