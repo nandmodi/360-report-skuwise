@@ -201,19 +201,11 @@ new Litepicker({
 });
 
 function initMultiSelect(ids) {
-  const countSelectedTemplate = (selectedItems) => {
-    if (selectedItems.length === 0) return "";
-    return `${selectedItems.length} Selected`;
-  };
   ids.forEach(id => {
     const selectEl = document.getElementById(id);
     if (!selectEl) return;
 
     const select = new TomSelect(selectEl, {
-      onChange: function(value) {
-        const wrapper = this.control;
-        wrapper.innerHTML = `<div>${countSelectedTemplate(value)}</div>`;
-      },
       plugins: ['remove_button'],
       closeAfterSelect: false,
       persist: false,
@@ -227,9 +219,10 @@ function initMultiSelect(ids) {
           return `<div>${escape(data.text)}</div>`;
         }
       },
-        item: function(data, escape) {
-          return `<div>${escape(data.text)}</div>`;
-        }
+      onChange: function(values) {
+        const wrapper = this.control;
+        const count = Array.isArray(values) ? values.length : (values ? 1 : 0);
+        wrapper.innerHTML = count > 0 ? `<div>${count} Selected</div>` : '';
       },
       onDropdownOpen: function(dropdown) {
         const selectAllId = `selectAll-${id}`;
@@ -242,8 +235,9 @@ function initMultiSelect(ids) {
             e.stopPropagation();
             const selectAll = document.getElementById(selectAllId);
             const control = dropdown.tomselect;
+            const allOptions = Object.values(control.options).map(o => o.value);
             if (selectAll.checked) {
-              control.setValue(control.options.map(opt => opt.value));
+              control.setValue(allOptions);
             } else {
               control.clear();
             }
@@ -252,6 +246,7 @@ function initMultiSelect(ids) {
       }
     });
   });
+}
 }
 
 function populateFilters(data) {
