@@ -201,11 +201,19 @@ new Litepicker({
 });
 
 function initMultiSelect(ids) {
+  const countSelectedTemplate = (selectedItems) => {
+    if (selectedItems.length === 0) return "";
+    return `${selectedItems.length} Selected`;
+  };
   ids.forEach(id => {
     const selectEl = document.getElementById(id);
     if (!selectEl) return;
 
     const select = new TomSelect(selectEl, {
+      onChange: function(value) {
+        const wrapper = this.control;
+        wrapper.innerHTML = `<div>${countSelectedTemplate(value)}</div>`;
+      },
       plugins: ['remove_button'],
       closeAfterSelect: false,
       persist: false,
@@ -215,6 +223,11 @@ function initMultiSelect(ids) {
         option: function(data, escape) {
           return `<div><label><input type='checkbox' /> ${escape(data.text)}</label></div>`;
         },
+        item: function(data, escape) {
+          const selectedCount = data.length || 1;
+          return `<div>${selectedCount} Selected</div>`;
+        }
+      },
         item: function(data, escape) {
           return `<div>${escape(data.text)}</div>`;
         }
