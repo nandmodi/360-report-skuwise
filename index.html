@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>QC Report Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet" />
@@ -11,8 +11,8 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      padding: 0;
       margin: 0;
+      padding: 0;
       background: #f9f9f9;
     }
     .sticky-header {
@@ -105,11 +105,11 @@
     <div class="filters">
       <div class="filter-group">
         <label for="dateRange">Date Range</label>
-        <input type="text" id="dateRange" placeholder="Select Date Range..." readonly>
+        <input type="text" id="dateRange" placeholder="Select Date Range..." readonly />
       </div>
       <div class="filter-group">
         <label for="enterpriseFilter">Enterprise</label>
-        <select id="enterpriseFilter" multiple placeholder="Select Enterprise..."></select>
+        <select id="enterpriseFilter" multiple></select>
       </div>
       <div class="filter-group">
         <label for="severityFilter">Severity</label>
@@ -122,11 +122,11 @@
       </div>
       <div class="filter-group">
         <label for="issueFilter">Issue</label>
-        <select id="issueFilter" multiple placeholder="Select Issue..."></select>
+        <select id="issueFilter" multiple></select>
       </div>
       <div class="filter-group">
         <label for="userFilter">User</label>
-        <select id="userFilter" multiple placeholder="Select User..."></select>
+        <select id="userFilter" multiple></select>
       </div>
       <button onclick="applyFilters()">Apply Filters</button>
     </div>
@@ -167,11 +167,24 @@
     </table>
   </div>
 
+  <div id="spinModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center;flex-direction:column;">
+    <div style="background:#fff;padding:20px;width:80vw;height:80vh;overflow:auto;border-radius:8px;position:relative;display:flex;flex-direction:column;">
+      <span onclick="document.getElementById('spinModal').style.display='none'" style="position:absolute;top:10px;right:15px;font-size:20px;cursor:pointer;">&times;</span>
+      <div id="modalInfo" style="margin-bottom:10px;font-weight:bold;text-align:center;"></div>
+      <div style="margin-bottom:10px;text-align:right;">
+        <button onclick="navigateSpin(-1)">Previous</button>
+        <button onclick="navigateSpin(1)">Next</button>
+      </div>
+      <iframe id="modalIframe" src="" style="width:100%;height:500px;border:none;"></iframe>
+    </div>
+  </div>
+
   <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
     let rawData = [];
     let summaryIndex = 0;
     let detailIndex = 0;
+    let currentSpinIndex = 0;
 
     new Litepicker({
       element: document.getElementById('dateRange'),
@@ -191,7 +204,6 @@
 
     function populateFilters(data) {
       const sets = { enterpriseFilter: new Set(), userFilter: new Set(), issueFilter: new Set() };
-
       data.forEach(row => {
         if (row.enterprise_name) sets.enterpriseFilter.add(row.enterprise_name);
         if (row.qc_user_name) sets.userFilter.add(row.qc_user_name);
@@ -215,7 +227,17 @@
 
     function applyFilters() {
       const dateRangeValue = document.getElementById('dateRange').value;
-      const [startDate, endDate] = dateRangeValue ? dateRangeValue.split(' - ') : [null, null];
+      let startDate = null, endDate = null;
+      if (dateRangeValue) {
+        const parts = dateRangeValue.split(' - ');
+        if (parts.length === 2) {
+          startDate = new Date(parts[0]);
+          endDate = new Date(parts[1]);
+        } else if (parts.length === 1) {
+          startDate = endDate = new Date(parts[0]);
+        }
+      }
+
       const selectedEnterprises = getSelectedValues('enterpriseFilter');
       const severity = document.getElementById('severityFilter').value;
       const selectedIssues = getSelectedValues('issueFilter');
@@ -230,10 +252,10 @@
 
       const filtered = rawData.filter(row => {
         if (startDate && endDate && row._dateObj instanceof Date && !isNaN(row._dateObj)) {
-          const start = new Date(startDate);
-          const end = new Date(endDate);
-          end.setHours(23, 59, 59, 999);
-          if (row._dateObj < start || row._dateObj > end) return false;
+          const rowTime = row._dateObj.getTime();
+          const startTime = new Date(startDate).setHours(0, 0, 0, 0);
+          const endTime = new Date(endDate).setHours(23, 59, 59, 999);
+          if (rowTime < startTime || rowTime > endTime) return false;
         }
         if (selectedEnterprises.length && !selectedEnterprises.includes(row.enterprise_name)) return false;
         if (selectedUsers.length && !selectedUsers.includes(row.qc_user_name)) return false;
@@ -247,7 +269,6 @@
 
       window.filteredData = filtered;
       window.groupedData = {};
-
       filtered.forEach(row => {
         const date = row.date;
         if (!window.groupedData[date]) window.groupedData[date] = { sku_ids: new Set(), enterprises: new Set(), edited: 0, tatSum: 0, count: 0 };
@@ -302,6 +323,21 @@
       detailIndex += count;
     }
 
+    function openSpinDialog(row, index) {
+      currentSpinIndex = index;
+      const info = `User: ${row.qc_user_name} | Severity: Blocker=${row.Blocker}, High=${row.High}, Low=${row.Low} | Issues: ${[row.Blocker_Reason, row.High_Reason, row.Low_Reason].filter(Boolean).join(', ')}`;
+      document.getElementById('modalInfo').innerText = info;
+      document.getElementById('modalIframe').src = row.view_spin;
+      document.getElementById('spinModal').style.display = 'flex';
+    }
+
+    function navigateSpin(offset) {
+      const newIndex = currentSpinIndex + offset;
+      if (newIndex >= 0 && newIndex < window.filteredData.length) {
+        openSpinDialog(window.filteredData[newIndex], newIndex);
+      }
+    }
+
     fetch(sheetUrl)
       .then(response => response.text())
       .then(csv => {
@@ -320,50 +356,15 @@
         });
       });
 
-    const summaryWrapper = document.querySelector('#summaryTable').parentElement;
-    summaryWrapper.addEventListener('scroll', () => {
-      if (summaryWrapper.scrollTop + summaryWrapper.clientHeight >= summaryWrapper.scrollHeight - 5) {
-        loadMoreSummary();
-      }
+    document.querySelector('#summaryTable').parentElement.addEventListener('scroll', e => {
+      const el = e.target;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) loadMoreSummary();
     });
 
-    const detailWrapper = document.querySelector('#reportTable').parentElement;
-    detailWrapper.addEventListener('scroll', () => {
-      if (detailWrapper.scrollTop + detailWrapper.clientHeight >= detailWrapper.scrollHeight - 5) {
-        loadMoreDetails();
-      }
+    document.querySelector('#reportTable').parentElement.addEventListener('scroll', e => {
+      const el = e.target;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) loadMoreDetails();
     });
-  </script>
-
-  <div id="spinModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center;flex-direction:column;">
-    <div style="background:#fff;padding:20px;width:80vw;height:80vh;overflow:auto;border-radius:8px;position:relative;display:flex;flex-direction:column;">
-      <span onclick="document.getElementById('spinModal').style.display='none'" style="position:absolute;top:10px;right:15px;font-size:20px;cursor:pointer;">&times;</span>
-      <div id="modalInfo" style="margin-bottom:10px;font-weight:bold;text-align:center;"></div>
-      <div style="margin-bottom:10px;text-align:right;">
-        <button onclick="navigateSpin(-1)">Previous</button>
-        <button onclick="navigateSpin(1)">Next</button>
-      </div>
-      <iframe id="modalIframe" src="" style="width:100%;height:500px;border:none;display:block;margin:auto;"></iframe>
-    </div>
-  </div>
-
-  <script>
-    let currentSpinIndex = 0;
-    function openSpinDialog(row, index) {
-      currentSpinIndex = index;
-      const info = `User: ${row.qc_user_name} | Severity: Blocker=${row.Blocker}, High=${row.High}, Low=${row.Low} | Issues: ${[row.Blocker_Reason, row.High_Reason, row.Low_Reason].filter(Boolean).join(', ')}`;
-      document.getElementById('modalInfo').innerText = info;
-      document.getElementById('modalIframe').src = row.view_spin;
-      document.getElementById('spinModal').style.display = 'flex';
-    }
-
-    function navigateSpin(offset) {
-      const newIndex = currentSpinIndex + offset;
-      const spins = window.filteredData;
-      if (newIndex >= 0 && newIndex < spins.length) {
-        openSpinDialog(spins[newIndex], newIndex);
-      }
-    }
   </script>
 </body>
 </html>
