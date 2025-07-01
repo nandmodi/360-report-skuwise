@@ -9,93 +9,13 @@
   <link href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f9f9f9;
-    }
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      background: #f9f9f9;
-      z-index: 10;
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    h1, h2 {
-      text-align: center;
-      color: #003366;
-      margin: 10px 0;
-    }
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 16px;
-      padding: 10px 20px;
-      background-color: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      min-width: 200px;
-      font-size: 14px;
-    }
-    .filter-group label {
-      margin-bottom: 4px;
-      font-weight: 600;
-      color: #003366;
-    }
-    .filter-group select,
-    .filter-group input {
-      padding: 6px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    .filters button {
-      height: fit-content;
-      align-self: flex-end;
-      padding: 8px 16px;
-      background-color: #0057a3;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
+    th.sortable {
       cursor: pointer;
-      margin-top: 22px;
     }
-    .filters button:hover {
-      background-color: #003f7f;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px 12px;
-      text-align: center;
-    }
-    th {
-      background-color: #0057a3;
-      color: white;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-    .table-wrapper {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-top: 10px;
-      padding: 0 20px;
+    th.sortable::after {
+      content: " \25B2\25BC";
+      font-size: 0.6em;
+      color: #ddd;
     }
   </style>
 </head>
@@ -137,11 +57,11 @@
     <table id="summaryTable">
       <thead>
         <tr>
-          <th>Date</th>
-          <th>SKU Count</th>
-          <th>Unique Enterprises</th>
-          <th>Total Edited Images</th>
-          <th>Average TAT</th>
+          <th class="sortable">Date</th>
+          <th class="sortable">SKU Count</th>
+          <th class="sortable">Unique Enterprises</th>
+          <th class="sortable">Total Edited Images</th>
+          <th class="sortable">Average TAT</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -153,14 +73,14 @@
     <table id="reportTable">
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Spin ID</th>
-          <th>SKU ID</th>
-          <th>Enterprise Name</th>
-          <th>User</th>
-          <th>Edited</th>
-          <th>TAT (Min)</th>
-          <th>View Spin</th>
+          <th class="sortable">Date</th>
+          <th class="sortable">Spin ID</th>
+          <th class="sortable">SKU ID</th>
+          <th class="sortable">Enterprise Name</th>
+          <th class="sortable">User</th>
+          <th class="sortable">Edited</th>
+          <th class="sortable">TAT (Min)</th>
+          <th class="sortable">View Spin</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -211,18 +131,11 @@
           if (row[col]) row[col].split(',').forEach(i => sets.issueFilter.add(i.trim()));
         });
       });
-
       for (const [id, values] of Object.entries(sets)) {
         const select = document.getElementById(id);
         select.innerHTML = [...values].sort().map(v => `<option value="${v}">${v}</option>`).join('');
       }
-
       initMultiSelect(['enterpriseFilter', 'issueFilter', 'userFilter']);
-    }
-
-    function getSelectedValues(id) {
-      const el = document.getElementById(id);
-      return Array.from(el.selectedOptions).map(o => o.value).filter(Boolean);
     }
 
     function applyFilters() {
@@ -237,19 +150,16 @@
           startDate = endDate = new Date(parts[0]);
         }
       }
-
       const selectedEnterprises = getSelectedValues('enterpriseFilter');
       const severity = document.getElementById('severityFilter').value;
       const selectedIssues = getSelectedValues('issueFilter');
       const selectedUsers = getSelectedValues('userFilter');
-
       const tbody = document.querySelector("#reportTable tbody");
       const summaryBody = document.querySelector("#summaryTable tbody");
       tbody.innerHTML = '';
       summaryBody.innerHTML = '';
       summaryIndex = 0;
       detailIndex = 0;
-
       const filtered = rawData.filter(row => {
         if (startDate && endDate && row._dateObj instanceof Date && !isNaN(row._dateObj)) {
           const rowTime = row._dateObj.getTime();
@@ -266,7 +176,6 @@
         }
         return true;
       });
-
       window.filteredData = filtered;
       window.groupedData = {};
       filtered.forEach(row => {
@@ -278,7 +187,6 @@
         window.groupedData[date].tatSum += parseFloat(row.TAT_minutes || 0);
         window.groupedData[date].count++;
       });
-
       loadMoreSummary();
       loadMoreDetails();
     }
@@ -338,6 +246,33 @@
       }
     }
 
+    function makeTableSortable(tableId) {
+      const table = document.getElementById(tableId);
+      const headers = table.querySelectorAll("th");
+      headers.forEach((th, idx) => {
+        th.classList.add("sortable");
+        th.addEventListener("click", () => sortTable(table, idx));
+      });
+    }
+
+    function sortTable(table, colIndex) {
+      const rows = Array.from(table.querySelector("tbody").rows);
+      const isNumeric = !isNaN(rows[0].cells[colIndex].innerText);
+      const asc = !table.dataset.sortAsc || table.dataset.sortCol != colIndex;
+      rows.sort((a, b) => {
+        const aText = a.cells[colIndex].innerText.trim();
+        const bText = b.cells[colIndex].innerText.trim();
+        if (isNumeric) {
+          return asc ? aText - bText : bText - aText;
+        } else {
+          return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+        }
+      });
+      rows.forEach(row => table.querySelector("tbody").appendChild(row));
+      table.dataset.sortAsc = asc;
+      table.dataset.sortCol = colIndex;
+    }
+
     fetch(sheetUrl)
       .then(response => response.text())
       .then(csv => {
@@ -364,6 +299,11 @@
     document.querySelector('#reportTable').parentElement.addEventListener('scroll', e => {
       const el = e.target;
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) loadMoreDetails();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      makeTableSortable("summaryTable");
+      makeTableSortable("reportTable");
     });
   </script>
 </body>
