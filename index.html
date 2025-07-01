@@ -201,7 +201,71 @@ new Litepicker({
 });
 
 function initMultiSelect(ids) {
-  ids.forEach(id => new TomSelect(`#${id}`, {
+  ids.forEach(id => {
+    new TomSelect(`#${id}`, {
+      plugins: ['remove_button'],
+      closeAfterSelect: false,
+      persist: false,
+      maxItems: null,
+      hideSelected: true,
+      render: {
+        option: function(data, escape) {
+          return `<div><label><input type='checkbox' /> ${escape(data.text)}</label></div>`;
+        },
+        item: function(data, escape) {
+          return `<div>${escape(data.text)}</div>`;
+        }
+      },
+      onDropdownOpen: function(dropdown) {
+        const selectAllId = `selectAll-${id}`;
+        if (!document.getElementById(selectAllId)) {
+          const selectAllDiv = document.createElement('div');
+          selectAllDiv.innerHTML = `<label style='display:block;padding:4px 10px;'><input type='checkbox' id='${selectAllId}' /> Select all</label>`;
+          dropdown.insertBefore(selectAllDiv, dropdown.firstChild);
+
+          selectAllDiv.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const selectAll = document.getElementById(selectAllId);
+            const control = dropdown.tomselect;
+            if (selectAll.checked) {
+              control.setValue(control.options.map(opt => opt.value));
+            } else {
+              control.clear();
+            }
+          });
+        }
+      }
+    });
+  });
+}`, {
+      plugins: ['remove_button'],
+      closeAfterSelect: true,
+      persist: false,
+      maxItems: null,
+      hideSelected: true,
+      onInitialize: function() {
+        const control = this;
+        const selectAllOption = document.createElement('div');
+        selectAllOption.className = 'ts-dropdown-content';
+        selectAllOption.style.padding = '5px 10px';
+        selectAllOption.innerHTML = '<label><input type="checkbox" id="selectAll-' + id + '"/> Select all</label>';
+
+        const dropdown = control.dropdown;
+        dropdown.insertBefore(selectAllOption, dropdown.firstChild);
+
+        selectAllOption.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const selectAll = document.getElementById('selectAll-' + id);
+          if (selectAll.checked) {
+            control.setValue(control.options.map(o => o.value));
+          } else {
+            control.clear();
+          }
+        });
+      }
+    });
+  });
+}`, {
     plugins: ['remove_button'],
     closeAfterSelect: true,
     persist: false,
