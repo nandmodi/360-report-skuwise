@@ -209,15 +209,14 @@ function initMultiSelect(ids) {
     new TomSelect(selectEl, {
       searchField: 'text',
       onChange: function(values) {
-        const realValues = values.filter(v => v !== '__summary__');
+        const realValues = Array.isArray(values) ? values.filter(v => v !== '__summary__') : [];
         const summary = realValues.length > 0 ? `${realValues.length} Selected` : '';
-        this.clear(true);
-        if (realValues.length > 0) {
-          realValues.forEach(v => this.addItem(v));
+
+        this.setValue(realValues, true);
+
+        if (summary) {
           this.addOption({ value: '__summary__', text: summary });
           this.addItem('__summary__');
-        }
-      
         }
       },
       plugins: ['remove_button'],
