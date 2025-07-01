@@ -207,10 +207,17 @@ function initMultiSelect(ids) {
     if (!selectEl) return;
 
     new TomSelect(selectEl, {
+      searchField: 'text',
       onChange: function(values) {
         const wrapper = this.control;
-        const count = Array.isArray(values) ? values.length : (values ? 1 : 0);
-        wrapper.innerHTML = count > 0 ? `<div>${count} Selected</div>` : '';
+        const summary = Array.isArray(values) ? `${values.length} Selected` : (values ? '1 Selected' : '');
+        wrapper.querySelectorAll('.item').forEach(e => e.remove());
+        if (summary) {
+          const display = document.createElement('div');
+          display.className = 'item';
+          display.textContent = summary;
+          wrapper.insertBefore(display, this.control_input);
+        }
       },
       plugins: ['remove_button'],
       closeAfterSelect: false,
