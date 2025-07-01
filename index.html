@@ -31,23 +31,44 @@
     .filters {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
       justify-content: center;
-      align-items: center;
-      margin-bottom: 10px;
+      gap: 16px;
+      padding: 10px 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
-    .filters select, .filters input {
-      min-width: 220px;
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 200px;
+      font-size: 14px;
     }
-    button {
+    .filter-group label {
+      margin-bottom: 4px;
+      font-weight: 600;
+      color: #003366;
+    }
+    .filter-group select,
+    .filter-group input {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .filters button {
+      height: fit-content;
+      align-self: flex-end;
       padding: 8px 16px;
       background-color: #0057a3;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
+      font-weight: bold;
       cursor: pointer;
+      margin-top: 22px;
     }
-    button:hover {
+    .filters button:hover {
       background-color: #003f7f;
     }
     table {
@@ -82,16 +103,31 @@
   <div class="sticky-header">
     <h1>QC Report Dashboard</h1>
     <div class="filters">
-      <input type="text" id="dateRange" placeholder="Select Date Range..." readonly>
-      <select id="enterpriseFilter" multiple placeholder="Select Enterprise..."></select>
-      <select id="severityFilter">
-        <option value="">All Severities</option>
-        <option>Blocker</option>
-        <option>High</option>
-        <option>Low</option>
-      </select>
-      <select id="issueFilter" multiple placeholder="Select Issue..."></select>
-      <select id="userFilter" multiple placeholder="Select User..."></select>
+      <div class="filter-group">
+        <label for="dateRange">Date Range</label>
+        <input type="text" id="dateRange" placeholder="Select Date Range..." readonly>
+      </div>
+      <div class="filter-group">
+        <label for="enterpriseFilter">Enterprise</label>
+        <select id="enterpriseFilter" multiple placeholder="Select Enterprise..."></select>
+      </div>
+      <div class="filter-group">
+        <label for="severityFilter">Severity</label>
+        <select id="severityFilter">
+          <option value="">All Severities</option>
+          <option>Blocker</option>
+          <option>High</option>
+          <option>Low</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="issueFilter">Issue</label>
+        <select id="issueFilter" multiple placeholder="Select Issue..."></select>
+      </div>
+      <div class="filter-group">
+        <label for="userFilter">User</label>
+        <select id="userFilter" multiple placeholder="Select User..."></select>
+      </div>
       <button onclick="applyFilters()">Apply Filters</button>
     </div>
   </div>
@@ -193,11 +229,11 @@
       detailIndex = 0;
 
       const filtered = rawData.filter(row => {
-        if (startDate && endDate) {
-          const rowDate = new Date(row.date);
+        if (startDate && endDate && row._dateObj instanceof Date && !isNaN(row._dateObj)) {
           const start = new Date(startDate);
           const end = new Date(endDate);
-          if (rowDate < start || rowDate > end) return false;
+          end.setHours(23, 59, 59, 999);
+          if (row._dateObj < start || row._dateObj > end) return false;
         }
         if (selectedEnterprises.length && !selectedEnterprises.includes(row.enterprise_name)) return false;
         if (selectedUsers.length && !selectedUsers.includes(row.qc_user_name)) return false;
@@ -274,7 +310,8 @@
           skipEmptyLines: true,
           complete: function(results) {
             rawData = results.data.map(row => {
-              row.date = row.date?.split(' ')[0]; // Trim time if present
+              row.date = row.date?.split(' ')[0];
+              row._dateObj = new Date(row.date);
               return row;
             });
             populateFilters(rawData);
