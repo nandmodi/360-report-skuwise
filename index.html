@@ -205,7 +205,7 @@ function initMultiSelect(ids) {
     const selectEl = document.getElementById(id);
     if (!selectEl) return;
 
-    const select = new TomSelect(selectEl, {
+    new TomSelect(selectEl, {
       plugins: ['remove_button'],
       closeAfterSelect: false,
       persist: false,
@@ -218,6 +218,30 @@ function initMultiSelect(ids) {
         item: function(data, escape) {
           return `<div>${escape(data.text)}</div>`;
         }
+      },
+      onDropdownOpen: function(dropdown) {
+        const selectAllId = `selectAll-${id}`;
+        if (!document.getElementById(selectAllId)) {
+          const selectAllDiv = document.createElement('div');
+          selectAllDiv.innerHTML = `<label style='display:block;padding:4px 10px;'><input type='checkbox' id='${selectAllId}' /> Select all</label>`;
+          dropdown.insertBefore(selectAllDiv, dropdown.firstChild);
+
+          selectAllDiv.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const selectAll = document.getElementById(selectAllId);
+            const control = dropdown.tomselect;
+            const allOptions = Object.values(control.options).map(o => o.value);
+            if (selectAll.checked) {
+              control.setValue(allOptions);
+            } else {
+              control.clear();
+            }
+          });
+        }
+      }
+    });
+  });
+}
       },
       onChange: function(values) {
         const wrapper = this.control;
