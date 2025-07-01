@@ -207,6 +207,11 @@ function initMultiSelect(ids) {
     if (!selectEl) return;
 
     new TomSelect(selectEl, {
+      onChange: function(values) {
+        const wrapper = this.control;
+        const count = Array.isArray(values) ? values.length : (values ? 1 : 0);
+        wrapper.innerHTML = count > 0 ? `<div>${count} Selected</div>` : '';
+      },
       plugins: ['remove_button'],
       closeAfterSelect: false,
       persist: false,
@@ -217,7 +222,7 @@ function initMultiSelect(ids) {
           return `<div><label><input type='checkbox' /> ${escape(data.text)}</label></div>`;
         },
         item: function(data, escape) {
-          return `<div>${escape(data.text)}</div>`;
+          return '';
         }
       },
       onDropdownOpen: function(dropdown) {
