@@ -224,8 +224,7 @@ function initMultiSelect(ids) {
           return `<div><label><input type='checkbox' /> ${escape(data.text)}</label></div>`;
         },
         item: function(data, escape) {
-          const selectedCount = data.length || 1;
-          return `<div>${selectedCount} Selected</div>`;
+          return `<div>${escape(data.text)}</div>`;
         }
       },
         item: function(data, escape) {
