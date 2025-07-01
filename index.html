@@ -188,7 +188,6 @@
 </div>
 
 <script>
-// JS logic restored
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
 let rawData = [];
 let summaryIndex = 0;
@@ -206,19 +205,7 @@ function initMultiSelect(ids) {
     const selectEl = document.getElementById(id);
     if (!selectEl) return;
 
-    new TomSelect(selectEl, {
-      searchField: 'text',
-      onChange: function(values) {
-        const realValues = Array.isArray(values) ? values.filter(v => v !== '__summary__') : [];
-        const summary = realValues.length > 0 ? `${realValues.length} Selected` : '';
-
-        this.setValue(realValues, true);
-
-        if (summary) {
-          this.addOption({ value: '__summary__', text: summary });
-          this.addItem('__summary__');
-        }
-      },
+    const select = new TomSelect(selectEl, {
       plugins: ['remove_button'],
       closeAfterSelect: false,
       persist: false,
@@ -229,10 +216,7 @@ function initMultiSelect(ids) {
           return `<div><label><input type='checkbox' /> ${escape(data.text)}</label></div>`;
         },
         item: function(data, escape) {
-          if (data.value === '__summary__') {
-            return `<div class="item">${escape(data.text)}</div>`;
-          }
-          return '';
+          return `<div>${escape(data.text)}</div>`;
         }
       },
       onDropdownOpen: function(dropdown) {
@@ -246,9 +230,8 @@ function initMultiSelect(ids) {
             e.stopPropagation();
             const selectAll = document.getElementById(selectAllId);
             const control = dropdown.tomselect;
-            const allOptions = Object.values(control.options).map(o => o.value);
             if (selectAll.checked) {
-              control.setValue(allOptions);
+              control.setValue(control.options.map(opt => opt.value));
             } else {
               control.clear();
             }
@@ -277,9 +260,7 @@ function populateFilters(data) {
 
 function getSelectedValues(id) {
   const el = document.getElementById(id);
-  return Array.from(el.selectedOptions)
-    .map(o => o.value)
-    .filter(v => v && v !== '__summary__');
+  return Array.from(el.selectedOptions).map(o => o.value).filter(Boolean);
 }
 
 function applyFilters() {
