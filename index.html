@@ -9,427 +9,320 @@
   <link href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
   <style>
+    :root {
+      --primary-color: #0057a3;
+      --primary-dark: #003f7f;
+      --background: #f4f6f8;
+      --text-color: #333;
+      --card-bg: #fff;
+      --border-color: #ddd;
+      --font: 'Segoe UI', 'Roboto', sans-serif;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
-      background: #f9f9f9;
+      font-family: var(--font);
+      background: var(--background);
+      color: var(--text-color);
     }
+
+    h1, h2 {
+      margin: 10px 0;
+      color: var(--primary-color);
+      font-weight: 600;
+      text-align: center;
+    }
+
     .sticky-header {
       position: sticky;
       top: 0;
-      background: #f9f9f9;
-      z-index: 10;
+      background: var(--card-bg);
       padding: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    h1, h2 {
-      text-align: center;
-      color: #003366;
-      margin: 10px 0;
-    }
+
     .filters {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
       gap: 16px;
-      padding: 10px 20px;
-      background-color: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      justify-content: center;
+      padding: 15px 20px;
+      border-radius: 10px;
+      background: var(--card-bg);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
+
     .filter-group {
       display: flex;
       flex-direction: column;
-      min-width: 200px;
+      min-width: 220px;
+    }
+
+    .filter-group label {
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: var(--primary-color);
       font-size: 14px;
     }
-    .filter-group label {
-      margin-bottom: 4px;
-      font-weight: 600;
-      color: #003366;
-    }
+
     .filter-group select,
     .filter-group input {
-      padding: 6px 10px;
-      border: 1px solid #ccc;
+      padding: 8px 10px;
+      border: 1px solid var(--border-color);
       border-radius: 6px;
       font-size: 14px;
+      background: #fff;
+      transition: border-color 0.2s;
     }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+      border-color: var(--primary-color);
+      outline: none;
+    }
+
     .filters button {
-      height: fit-content;
-      align-self: flex-end;
-      padding: 8px 16px;
-      background-color: #0057a3;
+      padding: 10px 20px;
+      margin-top: auto;
+      background: var(--primary-color);
       color: white;
       border: none;
       border-radius: 6px;
-      font-weight: bold;
+      font-weight: 600;
       cursor: pointer;
-      margin-top: 22px;
+      transition: background 0.3s ease;
     }
+
     .filters button:hover {
-      background-color: #003f7f;
+      background: var(--primary-dark);
     }
+
+    .table-wrapper {
+      overflow-y: auto;
+      margin: 20px auto;
+      padding: 0 20px;
+      max-height: 320px;
+      border-radius: 10px;
+      background: var(--card-bg);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
+      background: #fff;
+      font-size: 14px;
     }
+
     th, td {
-      border: 1px solid #ccc;
-      padding: 8px 12px;
+      padding: 10px 12px;
       text-align: center;
+      border: 1px solid var(--border-color);
     }
+
     th {
-      background-color: #0057a3;
-      color: white;
+      background: var(--primary-color);
+      color: #fff;
+      font-weight: 600;
       position: sticky;
       top: 0;
       z-index: 1;
     }
+
     tr:nth-child(even) {
-      background-color: #f2f2f2;
+      background: #f9fbfc;
     }
-    .table-wrapper {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-top: 10px;
-      padding: 0 20px;
-    }
+
     th.sortable {
       cursor: pointer;
+      user-select: none;
     }
+
     th.sortable::after {
-      content: " \25B2\25BC";
-      font-size: 0.6em;
-      color: #ddd;
+      content: " \21C5";
+      font-size: 12px;
+      color: #e0e0e0;
+    }
+
+    a {
+      color: var(--primary-color);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    a:hover {
+      color: var(--primary-dark);
+    }
+
+    #spinModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+    }
+
+    #spinModal .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      width: 80%;
+      max-height: 90%;
+      padding: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    #spinModal iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    #modalInfo {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    #spinModal .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      transition: color 0.3s;
+    }
+
+    #spinModal .close-btn:hover {
+      color: #000;
+    }
+
+    #spinModal .navigation-buttons {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+
+    #spinModal .navigation-buttons button {
+      margin-left: 10px;
+      padding: 6px 14px;
+      font-size: 14px;
+      background-color: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #spinModal .navigation-buttons button:hover {
+      background-color: var(--primary-dark);
+    }
+
+    @media screen and (max-width: 768px) {
+      .filters {
+        flex-direction: column;
+        align-items: center;
+      }
+      .filter-group {
+        width: 100%;
+      }
+      #spinModal .modal-content {
+        width: 95%;
+      }
     }
   </style>
 </head>
 <body>
-<div class="sticky-header">
-  <h1>QC Report Dashboard</h1>
-  <div class="filters">
-    <div class="filter-group">
-      <label for="dateRange">Date Range</label>
-      <input type="text" id="dateRange" placeholder="Select Date Range..." readonly />
+  <!-- Existing HTML and JavaScript content continues below this section -->
+  <div class="sticky-header">
+    <h1>QC Report Dashboard</h1>
+    <div class="filters">
+      <div class="filter-group">
+        <label for="dateRange">Date Range</label>
+        <input type="text" id="dateRange" placeholder="Select Date Range..." readonly />
+      </div>
+      <div class="filter-group">
+        <label for="enterpriseFilter">Enterprise</label>
+        <select id="enterpriseFilter" multiple></select>
+      </div>
+      <div class="filter-group">
+        <label for="severityFilter">Severity</label>
+        <select id="severityFilter">
+          <option value="">All Severities</option>
+          <option>Blocker</option>
+          <option>High</option>
+          <option>Low</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="issueFilter">Issue</label>
+        <select id="issueFilter" multiple></select>
+      </div>
+      <div class="filter-group">
+        <label for="userFilter">User</label>
+        <select id="userFilter" multiple></select>
+      </div>
+      <button onclick="applyFilters()">Apply Filters</button>
     </div>
-    <div class="filter-group">
-      <label for="enterpriseFilter">Enterprise</label>
-      <select id="enterpriseFilter" multiple></select>
-    </div>
-    <div class="filter-group">
-      <label for="severityFilter">Severity</label>
-      <select id="severityFilter">
-        <option value="">All Severities</option>
-        <option>Blocker</option>
-        <option>High</option>
-        <option>Low</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label for="issueFilter">Issue</label>
-      <select id="issueFilter" multiple></select>
-    </div>
-    <div class="filter-group">
-      <label for="userFilter">User</label>
-      <select id="userFilter" multiple></select>
-    </div>
-    <button onclick="applyFilters()">Apply Filters</button>
   </div>
-</div>
 
-<h2>Date-wise Summary</h2>
-<div class="table-wrapper">
-  <table id="summaryTable">
-    <thead>
-      <tr>
-        <th class="sortable">Date</th>
-        <th class="sortable">SKU Count</th>
-        <th class="sortable">Unique Enterprises</th>
-        <th class="sortable">Total Edited Images</th>
-        <th class="sortable">Average TAT</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<h2>Detailed Report</h2>
-<div class="table-wrapper">
-  <table id="reportTable">
-    <thead>
-      <tr>
-        <th class="sortable">Date</th>
-        <th class="sortable">Spin ID</th>
-        <th class="sortable">SKU ID</th>
-        <th class="sortable">Enterprise Name</th>
-        <th class="sortable">User</th>
-        <th class="sortable">Edited</th>
-        <th class="sortable">TAT (Min)</th>
-        <th class="sortable">View Spin</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<div id="spinModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center;flex-direction:column;">
-  <div style="background:#fff;padding:20px;width:80vw;height:80vh;overflow:auto;border-radius:8px;position:relative;display:flex;flex-direction:column;">
-    <span onclick="document.getElementById('spinModal').style.display='none'" style="position:absolute;top:10px;right:15px;font-size:20px;cursor:pointer;">&times;</span>
-    <div id="modalInfo" style="margin-bottom:10px;font-weight:bold;text-align:center;"></div>
-    <div style="margin-bottom:10px;text-align:right;">
-      <button onclick="navigateSpin(-1)">Previous</button>
-      <button onclick="navigateSpin(1)">Next</button>
-    </div>
-    <iframe id="modalIframe" src="" style="width:100%;height:500px;border:none;"></iframe>
+  <h2>Date-wise Summary</h2>
+  <div class="table-wrapper">
+    <table id="summaryTable">
+      <thead>
+        <tr>
+          <th class="sortable">Date</th>
+          <th class="sortable">SKU Count</th>
+          <th class="sortable">Unique Enterprises</th>
+          <th class="sortable">Total Edited Images</th>
+          <th class="sortable">Average TAT</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
-</div>
 
-<script>
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
-let rawData = [];
-let summaryIndex = 0;
-let detailIndex = 0;
-let currentSpinIndex = 0;
+  <h2>Detailed Report</h2>
+  <div class="table-wrapper">
+    <table id="reportTable">
+      <thead>
+        <tr>
+          <th class="sortable">Date</th>
+          <th class="sortable">Spin ID</th>
+          <th class="sortable">SKU ID</th>
+          <th class="sortable">Enterprise Name</th>
+          <th class="sortable">User</th>
+          <th class="sortable">Edited</th>
+          <th class="sortable">TAT (Min)</th>
+          <th class="sortable">View Spin</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-new Litepicker({
-  element: document.getElementById('dateRange'),
-  singleMode: false,
-  format: 'YYYY-MM-DD'
-});
-
-function initMultiSelect(ids) {
-  ids.forEach(id => {
-    const selectEl = document.getElementById(id);
-    if (!selectEl) return;
-
-    const select = new TomSelect(selectEl, {
-      plugins: ['remove_button'],
-      closeAfterSelect: false,
-      persist: false,
-      maxItems: null,
-      hideSelected: true,
-      render: {
-        option: function(data, escape) {
-          return `<div><label><input type='checkbox' /> ${escape(data.text)}</label></div>`;
-        },
-        item: function(data, escape) {
-          return `<div>${escape(data.text)}</div>`;
-        }
-      },
-      onDropdownOpen: function(dropdown) {
-        const selectAllId = `selectAll-${id}`;
-        if (!document.getElementById(selectAllId)) {
-          const selectAllDiv = document.createElement('div');
-          selectAllDiv.innerHTML = `<label style='display:block;padding:4px 10px;'><input type='checkbox' id='${selectAllId}' /> Select all</label>`;
-          dropdown.insertBefore(selectAllDiv, dropdown.firstChild);
-
-          selectAllDiv.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const selectAll = document.getElementById(selectAllId);
-            const control = dropdown.tomselect;
-            if (selectAll.checked) {
-              control.setValue(control.options.map(opt => opt.value));
-            } else {
-              control.clear();
-            }
-          });
-        }
-      }
-    });
-  });
-}
-
-function populateFilters(data) {
-  const sets = { enterpriseFilter: new Set(), userFilter: new Set(), issueFilter: new Set() };
-  data.forEach(row => {
-    if (row.enterprise_name) sets.enterpriseFilter.add(row.enterprise_name);
-    if (row.qc_user_name) sets.userFilter.add(row.qc_user_name);
-    ['Blocker_Reason', 'High_Reason', 'Low_Reason'].forEach(col => {
-      if (row[col]) row[col].split(',').forEach(i => sets.issueFilter.add(i.trim()));
-    });
-  });
-  for (const [id, values] of Object.entries(sets)) {
-    const select = document.getElementById(id);
-    select.innerHTML = [...values].sort().map(v => `<option value="${v}">${v}</option>`).join('');
-  }
-  initMultiSelect(['enterpriseFilter', 'issueFilter', 'userFilter']);
-}
-
-function getSelectedValues(id) {
-  const el = document.getElementById(id);
-  return Array.from(el.selectedOptions).map(o => o.value).filter(Boolean);
-}
-
-function applyFilters() {
-  const dateRangeValue = document.getElementById('dateRange').value;
-  let startDate = null, endDate = null;
-  if (dateRangeValue) {
-    const parts = dateRangeValue.split(' - ');
-    if (parts.length === 2) {
-      startDate = new Date(parts[0]);
-      endDate = new Date(parts[1]);
-    } else if (parts.length === 1) {
-      startDate = endDate = new Date(parts[0]);
-    }
-  }
-  const selectedEnterprises = getSelectedValues('enterpriseFilter');
-  const severity = document.getElementById('severityFilter').value;
-  const selectedIssues = getSelectedValues('issueFilter');
-  const selectedUsers = getSelectedValues('userFilter');
-  const tbody = document.querySelector("#reportTable tbody");
-  const summaryBody = document.querySelector("#summaryTable tbody");
-  tbody.innerHTML = '';
-  summaryBody.innerHTML = '';
-  summaryIndex = 0;
-  detailIndex = 0;
-  const filtered = rawData.filter(row => {
-    if (startDate && endDate && row._dateObj instanceof Date && !isNaN(row._dateObj)) {
-      const rowTime = row._dateObj.getTime();
-      const startTime = new Date(startDate).setHours(0, 0, 0, 0);
-      const endTime = new Date(endDate).setHours(23, 59, 59, 999);
-      if (rowTime < startTime || rowTime > endTime) return false;
-    }
-    if (selectedEnterprises.length && !selectedEnterprises.includes(row.enterprise_name)) return false;
-    if (selectedUsers.length && !selectedUsers.includes(row.qc_user_name)) return false;
-    if (severity && parseInt(row[severity]) === 0) return false;
-    if (selectedIssues.length) {
-      const reasons = `${row.Blocker_Reason || ''},${row.High_Reason || ''},${row.Low_Reason || ''}`;
-      if (!selectedIssues.some(issue => reasons.includes(issue))) return false;
-    }
-    return true;
-  });
-  window.filteredData = filtered;
-  window.groupedData = {};
-  filtered.forEach(row => {
-    const date = row.date;
-    if (!window.groupedData[date]) window.groupedData[date] = { sku_ids: new Set(), enterprises: new Set(), edited: 0, tatSum: 0, count: 0 };
-    window.groupedData[date].sku_ids.add(row["s.sku_id"]);
-    window.groupedData[date].enterprises.add(row.enterprise_name);
-    window.groupedData[date].edited += parseInt(row.edited_images || 0);
-    window.groupedData[date].tatSum += parseFloat(row.TAT_minutes || 0);
-    window.groupedData[date].count++;
-  });
-  loadMoreSummary();
-  loadMoreDetails();
-}
-
-function loadMoreSummary(count = 10) {
-  const summaryBody = document.querySelector("#summaryTable tbody");
-  const entries = Object.entries(window.groupedData);
-  for (let i = summaryIndex; i < summaryIndex + count && i < entries.length; i++) {
-    const [date, stats] = entries[i];
-    const avgTat = stats.count > 0 ? (stats.tatSum / stats.count).toFixed(2) : 0;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${date}</td>
-      <td>${stats.sku_ids.size}</td>
-      <td>${stats.enterprises.size}</td>
-      <td>${stats.edited}</td>
-      <td>${avgTat}</td>
-    `;
-    summaryBody.appendChild(tr);
-  }
-  summaryIndex += count;
-}
-
-function loadMoreDetails(count = 10) {
-  const tbody = document.querySelector("#reportTable tbody");
-  const filtered = window.filteredData || [];
-  for (let i = detailIndex; i < detailIndex + count && i < filtered.length; i++) {
-    const row = filtered[i];
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${row.date}</td>
-      <td>${row["s.spin_id"]}</td>
-      <td>${row["s.sku_id"]}</td>
-      <td>${row.enterprise_name}</td>
-      <td>${row.qc_user_name}</td>
-      <td>${row.edited_images}</td>
-      <td>${row.TAT_minutes}</td>
-      <td><a href="#" onclick='openSpinDialog(window.filteredData[${i}], ${i})'>View</a></td>
-    `;
-    tbody.appendChild(tr);
-  }
-  detailIndex += count;
-}
-
-function openSpinDialog(row, index) {
-  currentSpinIndex = index;
-  const info = `User: ${row.qc_user_name} | Severity: Blocker=${row.Blocker}, High=${row.High}, Low=${row.Low} | Issues: ${[row.Blocker_Reason, row.High_Reason, row.Low_Reason].filter(Boolean).join(', ')}`;
-  document.getElementById('modalInfo').innerText = info;
-  document.getElementById('modalIframe').src = row.view_spin;
-  document.getElementById('spinModal').style.display = 'flex';
-}
-
-function navigateSpin(offset) {
-  const newIndex = currentSpinIndex + offset;
-  if (newIndex >= 0 && newIndex < window.filteredData.length) {
-    openSpinDialog(window.filteredData[newIndex], newIndex);
-  }
-}
-
-function makeTableSortable(tableId) {
-  const table = document.getElementById(tableId);
-  const headers = table.querySelectorAll("th");
-  headers.forEach((th, idx) => {
-    th.classList.add("sortable");
-    th.addEventListener("click", () => sortTable(table, idx));
-  });
-}
-
-function sortTable(table, colIndex) {
-  const rows = Array.from(table.querySelector("tbody").rows);
-  const isNumeric = !isNaN(rows[0].cells[colIndex].innerText);
-  const asc = !table.dataset.sortAsc || table.dataset.sortCol != colIndex;
-  rows.sort((a, b) => {
-    const aText = a.cells[colIndex].innerText.trim();
-    const bText = b.cells[colIndex].innerText.trim();
-    if (isNumeric) {
-      return asc ? aText - bText : bText - aText;
-    } else {
-      return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
-    }
-  });
-  rows.forEach(row => table.querySelector("tbody").appendChild(row));
-  table.dataset.sortAsc = asc;
-  table.dataset.sortCol = colIndex;
-}
-
-fetch(sheetUrl)
-  .then(response => response.text())
-  .then(csv => {
-    Papa.parse(csv, {
-      header: true,
-      skipEmptyLines: true,
-      complete: function(results) {
-        rawData = results.data.map(row => {
-          row.date = row.date?.split(' ')[0];
-          row._dateObj = new Date(row.date);
-          return row;
-        });
-        populateFilters(rawData);
-        applyFilters();
-      }
-    });
-  });
-
-document.querySelector('#summaryTable').parentElement.addEventListener('scroll', e => {
-  const el = e.target;
-  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) loadMoreSummary();
-});
-
-document.querySelector('#reportTable').parentElement.addEventListener('scroll', e => {
-  const el = e.target;
-  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) loadMoreDetails();
-});
-
-window.addEventListener('DOMContentLoaded', () => {
-  makeTableSortable("summaryTable");
-  makeTableSortable("reportTable");
-});
-</script>
+  <div id="spinModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center;flex-direction:column;">
+    <div class="modal-content">
+      <span class="close-btn" onclick="document.getElementById('spinModal').style.display='none'">&times;</span>
+      <div id="modalInfo"></div>
+      <div class="navigation-buttons">
+        <button onclick="navigateSpin(-1)">Previous</button>
+        <button onclick="navigateSpin(1)">Next</button>
+      </div>
+      <iframe id="modalIframe" src=""></iframe>
+    </div>
+  </div>
 </body>
 </html>
