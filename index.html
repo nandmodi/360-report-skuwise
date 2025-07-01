@@ -188,6 +188,7 @@
 </div>
 
 <script>
+// JS logic restored
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTaSxWZ-Y3M-wyNiCdN7FSH5kAMMy1cox7D_YRn2sWNkGfo1j4WCGbaedRXgnUKvELK5eAMv334UCaD/pub?gid=0&single=true&output=csv";
 let rawData = [];
 let summaryIndex = 0;
@@ -205,7 +206,7 @@ function initMultiSelect(ids) {
     const selectEl = document.getElementById(id);
     if (!selectEl) return;
 
-    const select = new TomSelect(selectEl, {
+    new TomSelect(selectEl, {
       plugins: ['remove_button'],
       closeAfterSelect: false,
       persist: false,
@@ -230,8 +231,9 @@ function initMultiSelect(ids) {
             e.stopPropagation();
             const selectAll = document.getElementById(selectAllId);
             const control = dropdown.tomselect;
+            const allOptions = Object.values(control.options).map(o => o.value);
             if (selectAll.checked) {
-              control.setValue(control.options.map(opt => opt.value));
+              control.setValue(allOptions);
             } else {
               control.clear();
             }
