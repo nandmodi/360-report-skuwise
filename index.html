@@ -71,6 +71,12 @@
     .filters button:hover {
       background-color: #003f7f;
     }
+    .filters .reset-button {
+      background-color: #ff4d4d; /* Red color for reset */
+    }
+    .filters .reset-button:hover {
+      background-color: #cc0000;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -137,6 +143,7 @@
       <select id="userFilter" multiple></select>
     </div>
     <button onclick="applyFilters()">Apply Filters</button>
+    <button class="reset-button" onclick="resetFilters()">Reset Filters</button> <!-- Reset Button -->
   </div>
 </div>
 
@@ -149,7 +156,7 @@
         <th class="sortable">SKU Count</th>
         <th class="sortable">Unique Enterprises</th>
         <th class="sortable">Total Edited Images</th>
-        <th class="sortable">Edited Image Per SKU</th> <!-- Moved this column -->
+        <th class="sortable">Edited Image Per SKU</th>
         <th class="sortable">Average TAT</th>
       </tr>
     </thead>
@@ -365,7 +372,7 @@ function openSpinDialog(row, index) {
   currentSpinIndex = index;
   const info = `User: ${row.qc_user_name} | Severity: Blocker=${row.Blocker}, High=${row.High}, Low=${row.Low} | Issues: ${[row.Blocker_Reason, row.High_Reason, row.Low_Reason].filter(Boolean).join(', ')}`;
   document.getElementById('modalInfo').innerText = info;
-  document.getElementById('modalIframe').src = row.view_spin;
+  document.getElementById('modalIframe').src = row.view_spin;  // Make sure this URL is correct
   document.getElementById('spinModal').style.display = 'flex';
 }
 
@@ -401,6 +408,15 @@ function sortTable(table, colIndex) {
   rows.forEach(row => table.querySelector("tbody").appendChild(row));
   table.dataset.sortAsc = asc;
   table.dataset.sortCol = colIndex;
+}
+
+function resetFilters() {
+  document.getElementById('dateRange').value = '';
+  document.getElementById('enterpriseFilter').selectedIndex = -1;
+  document.getElementById('severityFilter').selectedIndex = 0;
+  document.getElementById('issueFilter').selectedIndex = -1;
+  document.getElementById('userFilter').selectedIndex = -1;
+  applyFilters(); // Reapply the default filters (without selection)
 }
 
 fetch(sheetUrl)
