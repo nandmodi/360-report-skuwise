@@ -452,24 +452,24 @@ function resetFilters() {
   // Reset the Date Range input
   document.getElementById('dateRange').value = '';
 
-  // Reset the Enterprise filter (multi-select)
+  // Reset the Enterprise filter (multi-select) using TomSelect
   const enterpriseFilter = document.getElementById('enterpriseFilter');
-  enterpriseFilter.selectedIndex = -1;  // Clear all selected options
-  enterpriseFilter.value = ''; // Clear the value as well
-  
+  const enterpriseSelect = TomSelect.instances[enterpriseFilter.id]; // Access the TomSelect instance
+  enterpriseSelect.clear(); // Clear all selected options
+
   // Reset the Severity filter to the default (All Severities)
   const severityFilter = document.getElementById('severityFilter');
   severityFilter.selectedIndex = 0; // Set it back to "All Severities"
   
-  // Reset the Issue filter (multi-select)
+  // Reset the Issue filter (multi-select) using TomSelect
   const issueFilter = document.getElementById('issueFilter');
-  issueFilter.selectedIndex = -1; // Clear all selected options
-  issueFilter.value = ''; // Clear the value as well
+  const issueSelect = TomSelect.instances[issueFilter.id]; // Access the TomSelect instance
+  issueSelect.clear(); // Clear all selected options
 
-  // Reset the User filter (multi-select)
+  // Reset the User filter (multi-select) using TomSelect
   const userFilter = document.getElementById('userFilter');
-  userFilter.selectedIndex = -1; // Clear all selected options
-  userFilter.value = ''; // Clear the value as well
+  const userSelect = TomSelect.instances[userFilter.id]; // Access the TomSelect instance
+  userSelect.clear(); // Clear all selected options
 
   // Reapply filters to refresh the data with default selections
   applyFilters();
