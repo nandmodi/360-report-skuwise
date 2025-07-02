@@ -150,6 +150,7 @@
         <th class="sortable">Unique Enterprises</th>
         <th class="sortable">Total Edited Images</th>
         <th class="sortable">Average TAT</th>
+        <th class="sortable">Edited Image Per SKU</th> <!-- New Column -->
       </tr>
     </thead>
     <tbody></tbody>
@@ -322,6 +323,7 @@ function loadMoreSummary(count = 10) {
   for (let i = summaryIndex; i < summaryIndex + count && i < entries.length; i++) {
     const [date, stats] = entries[i];
     const avgTat = stats.count > 0 ? (stats.tatSum / stats.count).toFixed(2) : 0;
+    const editedImagePerSku = stats.sku_ids.size > 0 ? (stats.edited / stats.sku_ids.size).toFixed(2) : 0; // Calculate "Edited Image Per SKU"
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${date}</td>
@@ -329,6 +331,7 @@ function loadMoreSummary(count = 10) {
       <td>${stats.enterprises.size}</td>
       <td>${stats.edited}</td>
       <td>${avgTat}</td>
+      <td>${editedImagePerSku}</td> <!-- Display "Edited Image Per SKU" -->
     `;
     summaryBody.appendChild(tr);
   }
