@@ -149,9 +149,8 @@
         <th class="sortable">SKU Count</th>
         <th class="sortable">Unique Enterprises</th>
         <th class="sortable">Total Edited Images</th>
-        <th class="sortable">Edited Image Per SKU</th>
-        <th class="sortable">Average TAT(Min)</th>
-        <!-- New Column -->
+        <th class="sortable">Edited Image Per SKU</th> <!-- Moved this column -->
+        <th class="sortable">Average TAT</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -330,9 +329,9 @@ function loadMoreSummary(count = 10) {
       <td>${date}</td>
       <td>${stats.sku_ids.size}</td>
       <td>${stats.enterprises.size}</td>
-      <td>${stats.edited}</td>
-      <td>${avgTat}</td>
-      <td>${editedImagePerSku}</td> <!-- Display "Edited Image Per SKU" -->
+      <td>${stats.edited}</td> <!-- Total Edited Images -->
+      <td>${editedImagePerSku}</td> <!-- Edited Image Per SKU -->
+      <td>${avgTat}</td> <!-- Average TAT -->
     `;
     summaryBody.appendChild(tr);
   }
