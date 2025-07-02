@@ -326,7 +326,7 @@ function applyFilters() {
   loadMoreDetails();
 }
 
-function loadMoreSummary(count = 10) {
+function loadMoreSummary(count = 50) {
   const summaryBody = document.querySelector("#summaryTable tbody");
   const entries = Object.entries(window.groupedData);
   for (let i = summaryIndex; i < summaryIndex + count && i < entries.length; i++) {
