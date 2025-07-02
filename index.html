@@ -111,6 +111,44 @@
       font-size: 0.6em;
       color: #ddd;
     }
+    #spinModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #modalContent {
+      background: #fff;
+      padding: 20px;
+      width: 80vw;
+      height: 80vh;
+      overflow: auto;
+      border-radius: 8px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      resize: both;
+      overflow: hidden;
+    }
+    #modalIframeWrapper {
+      position: relative;
+      padding-top: 56.25%; /* 16:9 aspect ratio */
+      height: 0;
+      overflow: hidden;
+    }
+    #modalIframe {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
   </style>
 </head>
 <body>
@@ -183,16 +221,16 @@
   </table>
 </div>
 
-<div id="spinModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center;flex-direction:column;">
-  <div style="background:#fff;padding:20px;width:80vw;height:80vh;overflow:auto;border-radius:8px;position:relative;display:flex;flex-direction:column;resize: both; overflow: hidden;">
+<div id="spinModal">
+  <div id="modalContent">
     <span onclick="document.getElementById('spinModal').style.display='none'" style="position:absolute;top:10px;right:15px;font-size:20px;cursor:pointer;">&times;</span>
     <div id="modalInfo" style="margin-bottom:10px;font-weight:bold;text-align:center;"></div>
     <div style="margin-bottom:10px;text-align:right;">
       <button onclick="navigateSpin(-1)">Previous</button>
       <button onclick="navigateSpin(1)">Next</button>
     </div>
-    <div style="position:relative; padding-top:56.25%; height:0; overflow:hidden;">
-      <iframe id="modalIframe" src="" style="position:absolute;width:100%;height:100%;border:none;"></iframe>
+    <div id="modalIframeWrapper">
+      <iframe id="modalIframe" src=""></iframe>
     </div>
   </div>
 </div>
@@ -347,7 +385,7 @@ function loadMoreSummary(count = 50) {
   summaryIndex += count;
 }
 
-function loadMoreDetails(count = 10) {
+function loadMoreDetails(count = 50) {
   const tbody = document.querySelector("#reportTable tbody");
   const filtered = window.filteredData || [];
   for (let i = detailIndex; i < detailIndex + count && i < filtered.length; i++) {
@@ -411,12 +449,30 @@ function sortTable(table, colIndex) {
 }
 
 function resetFilters() {
+  // Reset the Date Range input
   document.getElementById('dateRange').value = '';
-  document.getElementById('enterpriseFilter').selectedIndex = -1;
-  document.getElementById('severityFilter').selectedIndex = 0;
-  document.getElementById('issueFilter').selectedIndex = -1;
-  document.getElementById('userFilter').selectedIndex = -1;
-  applyFilters(); // Reapply the default filters (without selection)
+
+  // Reset the Enterprise filter (multi-select)
+  const enterpriseFilter = document.getElementById('enterpriseFilter');
+  enterpriseFilter.selectedIndex = -1;
+  enterpriseFilter.value = '';
+
+  // Reset the Severity filter to the default (All Severities)
+  const severityFilter = document.getElementById('severityFilter');
+  severityFilter.selectedIndex = 0; // Set it back to "All Severities"
+
+  // Reset the Issue filter (multi-select)
+  const issueFilter = document.getElementById('issueFilter');
+  issueFilter.selectedIndex = -1;
+  issueFilter.value = '';
+
+  // Reset the User filter (multi-select)
+  const userFilter = document.getElementById('userFilter');
+  userFilter.selectedIndex = -1;
+  userFilter.value = '';
+
+  // Reapply filters to refresh the data with default selections
+  applyFilters();
 }
 
 fetch(sheetUrl)
