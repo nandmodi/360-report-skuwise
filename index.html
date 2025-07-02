@@ -454,22 +454,22 @@ function resetFilters() {
 
   // Reset the Enterprise filter (multi-select)
   const enterpriseFilter = document.getElementById('enterpriseFilter');
-  enterpriseFilter.selectedIndex = -1;
-  enterpriseFilter.value = '';
-
+  enterpriseFilter.selectedIndex = -1;  // Clear all selected options
+  enterpriseFilter.value = ''; // Clear the value as well
+  
   // Reset the Severity filter to the default (All Severities)
   const severityFilter = document.getElementById('severityFilter');
   severityFilter.selectedIndex = 0; // Set it back to "All Severities"
-
+  
   // Reset the Issue filter (multi-select)
   const issueFilter = document.getElementById('issueFilter');
-  issueFilter.selectedIndex = -1;
-  issueFilter.value = '';
+  issueFilter.selectedIndex = -1; // Clear all selected options
+  issueFilter.value = ''; // Clear the value as well
 
   // Reset the User filter (multi-select)
   const userFilter = document.getElementById('userFilter');
-  userFilter.selectedIndex = -1;
-  userFilter.value = '';
+  userFilter.selectedIndex = -1; // Clear all selected options
+  userFilter.value = ''; // Clear the value as well
 
   // Reapply filters to refresh the data with default selections
   applyFilters();
